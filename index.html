@@ -45,7 +45,7 @@
 
 * { box-sizing: border-box; }
 html { min-height: 100%; background: var(--paper); -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; }
-button, .btn, .target, .switch, .drop { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+button, .btn, .gooey-nav__item, .switch, .drop { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 body {
   margin: 0;
   background: radial-gradient(ellipse at 50% 0%, rgba(235, 203, 139, 0.07), transparent 48%), var(--paper); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5;
@@ -99,13 +99,20 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 18px; margin: 0; 
 .file span:last-child { color: var(--muted); white-space: nowrap; }
 .tag-example { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; background: var(--hold-soft); color: var(--hold); padding: 2px 8px; border-radius: 99px; justify-self: start; }
 
-.targets { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.target { position: relative; display: block; cursor: pointer; }
-.target input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
-.target span { display: block; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--sunk); font-weight: 600; font-size: 14px; text-align: center; transition: transform var(--press) var(--ease-out), border-color 150ms var(--ease-out), background-color 150ms var(--ease-out), color 150ms var(--ease-out); }
-.target:active span { transform: scale(0.97); }
-.target input:checked + span { border-color: var(--accent); background: rgba(235, 203, 139, 0.1); color: var(--accent); }
-.target input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.goo-panel { overflow: clip; }
+.gooey-nav { position: relative; display: flex; width: 100%; padding: 6px; border-radius: 22px; background: var(--sunk); font-size: 14px; line-height: 1.2; }
+.gooey-nav__rim { position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px var(--line), inset 0 1px 0 rgb(255 255 255 / .05); pointer-events: none; }
+.gooey-nav__stage { position: relative; width: 100%; }
+.gooey-nav__canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
+.gooey-nav__fallback { position: absolute; top: 0; left: 0; display: none; border-radius: 999px; background: var(--accent); pointer-events: none; }
+.gooey-nav__list { position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin: 0; padding: 0; }
+.gooey-nav__list--active { position: absolute; inset: 0; color: var(--accent-ink); visibility: hidden; clip-path: inset(100%); pointer-events: none; }
+.gooey-nav__item { position: relative; display: flex; cursor: pointer; }
+.gooey-nav__item input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.gooey-nav__link { display: inline-flex; align-items: center; padding: 9px 16px; border-radius: 999px; color: var(--muted); font-weight: 600; white-space: nowrap; transition: color 200ms var(--ease-out); }
+.gooey-nav__list--active .gooey-nav__link { color: inherit; }
+.gooey-nav__item input:checked + .gooey-nav__link { color: var(--ink); }
+.gooey-nav__item input:focus-visible + .gooey-nav__link { outline: 2px solid var(--cyan); outline-offset: 2px; }
 .switch-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .switch { position: relative; width: 50px; height: 30px; flex: none; cursor: pointer; }
 .switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: inherit; z-index: 1; }
@@ -192,11 +199,11 @@ td.desc { min-width: 220px; }
 @media (hover: hover) and (pointer: fine) {
   .btn:hover:not(:disabled) { filter: brightness(1.08); }
   .drop:hover { border-color: var(--accent); background: rgba(235, 203, 139, 0.08); }
-  .target:hover input:not(:checked) + span { border-color: var(--muted); }
+  .gooey-nav__item:hover .gooey-nav__link { color: var(--ink); }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 1ms !important; animation: none !important; }
-  .btn:active:not(:disabled), .drop:active, .target:active span { transform: none; }
+  .btn:active:not(:disabled), .drop:active { transform: none; }
 }
 @media (prefers-reduced-transparency: reduce) {
   .toast { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
@@ -237,13 +244,26 @@ td.desc { min-width: 220px; }
         <div class="files" id="files"></div>
       </section>
 
-      <section class="panel" aria-labelledby="h-target">
+      <section class="panel goo-panel" aria-labelledby="h-target">
         <h2 id="h-target">2. Your accounts software</h2>
-        <div class="targets" role="radiogroup" aria-labelledby="h-target">
-          <label class="target"><input type="radio" name="target" id="t-freeagent" value="freeagent" checked><span>FreeAgent</span></label>
-          <label class="target"><input type="radio" name="target" id="t-quickbooks" value="quickbooks"><span>QuickBooks</span></label>
-          <label class="target"><input type="radio" name="target" id="t-sage" value="sage"><span>Sage Accounting</span></label>
-          <label class="target"><input type="radio" name="target" id="t-xero" value="xero"><span>Xero</span></label>
+        <div class="gooey-nav" id="targetNav">
+          <span class="gooey-nav__rim"></span>
+          <div class="gooey-nav__stage">
+            <canvas class="gooey-nav__canvas" aria-hidden="true"></canvas>
+            <span class="gooey-nav__fallback" aria-hidden="true"></span>
+            <div class="gooey-nav__list" role="radiogroup" aria-labelledby="h-target">
+              <label class="gooey-nav__item" data-gooey-index="0"><input type="radio" name="target" id="t-freeagent" value="freeagent" checked><span class="gooey-nav__link">FreeAgent</span></label>
+              <label class="gooey-nav__item" data-gooey-index="1"><input type="radio" name="target" id="t-quickbooks" value="quickbooks"><span class="gooey-nav__link">QuickBooks</span></label>
+              <label class="gooey-nav__item" data-gooey-index="2"><input type="radio" name="target" id="t-sage" value="sage"><span class="gooey-nav__link">Sage Accounting</span></label>
+              <label class="gooey-nav__item" data-gooey-index="3"><input type="radio" name="target" id="t-xero" value="xero"><span class="gooey-nav__link">Xero</span></label>
+            </div>
+            <div class="gooey-nav__list gooey-nav__list--active" aria-hidden="true">
+              <span class="gooey-nav__item"><span class="gooey-nav__link">FreeAgent</span></span>
+              <span class="gooey-nav__item"><span class="gooey-nav__link">QuickBooks</span></span>
+              <span class="gooey-nav__item"><span class="gooey-nav__link">Sage Accounting</span></span>
+              <span class="gooey-nav__item"><span class="gooey-nav__link">Xero</span></span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -493,6 +513,279 @@ function toCSV(rows, f) {
   return lines.map(l => l.join(",")).join("\r\n") + "\r\n";
 }
 
+/* ---------- gooey software picker ----------
+   Plain-JS port of GooeyNav from React Bits (reactbits.dev), as used in the
+   Nightfall portal (nightfall-os). WebGL draws the liquid pill; drops fly from
+   the old choice to the new one and merge in. Falls back to a plain pill
+   without WebGL, and jumps straight there with Reduce Motion. */
+function gooeyNav(root, opts) {
+  const S = Object.assign({ animationTime: 600, particleCount: 15, timeVariance: 300, spread: 56, gooeyness: 0.5, wobble: 0.5, hoverEffect: true,
+    pillRgb: [0.922, 0.796, 0.545], hoverRgb: [1, 1, 1, 0.08], shadow: 0 }, opts);
+  const stage = root.querySelector(".gooey-nav__stage"), canvas = root.querySelector(".gooey-nav__canvas");
+  const list = root.querySelector(".gooey-nav__list:not(.gooey-nav__list--active)"), overlay = root.querySelector(".gooey-nav__list--active");
+  const fallback = root.querySelector(".gooey-nav__fallback");
+  const MAX_DROPS = 32, MAX_PILLS = 4, MARGIN = 72;
+  const VERTEX = `#version 300 es
+in vec2 aPosition;
+void main() { gl_Position = vec4(aPosition, 0.0, 1.0); }`;
+  const FRAGMENT = `#version 300 es
+precision highp float;
+uniform vec2 uSize; uniform float uRatio; uniform vec4 uPills[${MAX_PILLS}]; uniform vec4 uHover;
+uniform vec4 uDrops[${MAX_DROPS}]; uniform vec2 uTails[${MAX_DROPS}]; uniform vec3 uTints[${MAX_DROPS}];
+uniform int uCount; uniform float uSmooth; uniform vec3 uPill; uniform vec4 uHoverColor; uniform float uShadow;
+out vec4 outColor;
+float sdPill(vec2 p, vec4 box) { vec2 extent = max(box.zw, vec2(0.0)); float r = min(extent.x, extent.y); vec2 q = abs(p - box.xy) - extent + r; return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r; }
+float sdCapsule(vec2 p, vec2 a, vec2 b, float r) { vec2 pa = p - a; vec2 ba = b - a; float h = clamp(dot(pa, ba) / max(dot(ba, ba), 0.0001), 0.0, 1.0); return length(pa - ba * h) - r; }
+vec4 blend(vec4 a, vec4 b, float k) { float h = clamp(0.5 + 0.5 * (b.w - a.w) / k, 0.0, 1.0); return vec4(mix(b.rgb, a.rgb, h), mix(b.w, a.w, h) - k * h * (1.0 - h)); }
+vec4 field(vec2 p) {
+  vec4 shape = vec4(uPill, 1e5);
+  for (int i = 0; i < ${MAX_PILLS}; i++) { vec4 pill = uPills[i]; if (pill.z <= 0.0) continue; shape = blend(shape, vec4(uPill, sdPill(p, pill)), uSmooth); }
+  for (int i = 0; i < ${MAX_DROPS}; i++) { if (i >= uCount) break; vec4 drop = uDrops[i]; if (drop.z <= 0.0) continue;
+    float d = sdCapsule(p, drop.xy, drop.xy - uTails[i], drop.z); if (d > shape.w + uSmooth) continue; shape = blend(shape, vec4(uTints[i], d), uSmooth); }
+  return shape;
+}
+void main() {
+  vec2 p = vec2(gl_FragCoord.x, uSize.y * uRatio - gl_FragCoord.y) / uRatio;
+  vec4 shape = field(p); float d = shape.w; float aa = max(fwidth(d), 0.35); float body = clamp(0.5 - d / aa, 0.0, 1.0);
+  vec2 grad = vec2(dFdx(d), -dFdy(d)); vec2 n = length(grad) > 0.0001 ? normalize(grad) : vec2(0.0, 1.0);
+  float rim = (1.0 - smoothstep(0.0, 1.6, -d)) * max(0.0, -n.y) * 0.3;
+  vec3 fill = mix(shape.rgb, vec3(1.0), rim) * (1.0 - 0.06 * max(0.0, n.y) * (1.0 - smoothstep(0.0, 6.0, -d)));
+  float lifted = field(p - vec2(0.0, 3.0)).w; float shadow = (1.0 - smoothstep(-3.0, 9.0, lifted)) * uShadow * (1.0 - body);
+  float hover = clamp(0.5 - sdPill(p, uHover) / aa, 0.0, 1.0) * uHoverColor.a;
+  vec4 color = vec4(0.0, 0.0, 0.0, shadow);
+  color = vec4(uHoverColor.rgb * hover, hover) + color * (1.0 - hover);
+  color = vec4(fill * body, body) + color * (1.0 - body);
+  outColor = color;
+}`;
+  const clamp01 = v => Math.min(1, Math.max(0, v));
+  const travelEase = t => { const x = clamp01(t); return x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2; };
+  const bezier = (a, b, c, d, t) => { const u = 1 - t; return u * u * u * a + 3 * u * u * t * b + 3 * u * t * t * c + t * t * t * d; };
+  const pillPath = (x, y, w, h) => { if (w <= 0.5 || h <= 0.5) return ""; const r = Math.min(w, h) / 2;
+    return `M${x + r},${y}H${x + w - r}A${r},${r} 0 0 1 ${x + w},${y + r}V${y + h - r}A${r},${r} 0 0 1 ${x + w - r},${y + h}H${x + r}A${r},${r} 0 0 1 ${x},${y + h - r}V${y + r}A${r},${r} 0 0 1 ${x + r},${y}Z`; };
+  const UNIFORMS = ["uSize", "uRatio", "uPills", "uHover", "uDrops", "uTails", "uTints", "uCount", "uSmooth", "uPill", "uHoverColor", "uShadow"];
+  const compile = (gl, type, src) => { const sh = gl.createShader(type); gl.shaderSource(sh, src); gl.compileShader(sh); return sh; };
+  const build = gl => {
+    const program = gl.createProgram();
+    gl.attachShader(program, compile(gl, gl.VERTEX_SHADER, VERTEX)); gl.attachShader(program, compile(gl, gl.FRAGMENT_SHADER, FRAGMENT)); gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) { gl.deleteProgram(program); return null; }
+    const uniforms = Object.fromEntries(UNIFORMS.map(n => [n, gl.getUniformLocation(program, n)]));
+    const buffer = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    return { program, uniforms, buffer, position: gl.getAttribLocation(program, "aPosition") };
+  };
+
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let gl = null; try { gl = canvas.getContext("webgl2", { alpha: true, premultipliedAlpha: true, antialias: false }); } catch (e) {}
+  let pipeline = gl ? build(gl) : null;
+  const showCanvas = () => { fallback.style.display = pipeline ? "none" : "block"; canvas.style.display = pipeline ? "block" : "none"; };
+  showCanvas();
+
+  const view = { width: 0, height: 0 };
+  let rects = [], target = -1, raf = 0, last = 0;
+  const pills = new Map(), drops = [];
+  const hover = { x: 0, y: 0, w: 0, h: 0, alpha: 0, index: -1 };
+  const pillData = new Float32Array(MAX_PILLS * 4), dropData = new Float32Array(MAX_DROPS * 4);
+  const tailData = new Float32Array(MAX_DROPS * 2), tintData = new Float32Array(MAX_DROPS * 3);
+
+  const measure = () => {
+    const box = stage.getBoundingClientRect(), ratio = Math.min(window.devicePixelRatio || 1, 2);
+    view.width = box.width; view.height = box.height;
+    const ow = box.width + MARGIN * 2, oh = box.height + MARGIN * 2;
+    Object.assign(canvas.style, { left: `${-MARGIN}px`, top: `${-MARGIN}px`, width: `${ow}px`, height: `${oh}px` });
+    const w = Math.max(1, Math.round(ow * ratio)), h = Math.max(1, Math.round(oh * ratio));
+    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+    rects = Array.from(list.children).map(item => { const r = item.getBoundingClientRect(); return { x: r.left - box.left, y: r.top - box.top, w: r.width, h: r.height }; });
+  };
+
+  const trace = (boxes, blobs, smooth) => {
+    const field = (x, y) => {
+      let d = 1e5;
+      const merge = v => { const h = clamp01(0.5 + (0.5 * (v - d)) / smooth); d = v + (d - v) * h - smooth * h * (1 - h); };
+      for (const b of boxes) { const r = Math.min(b.hw, b.hh); const qx = Math.abs(x - b.cx) - b.hw + r, qy = Math.abs(y - b.cy) - b.hh + r;
+        merge(Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - r); }
+      for (const b of blobs) { const px = x - b.x, py = y - b.y, bx = -b.tx, by = -b.ty, span = bx * bx + by * by;
+        const h = span > 0.0001 ? clamp01((px * bx + py * by) / span) : 0; const v = Math.hypot(px - bx * h, py - by * h) - b.r;
+        if (v > d + smooth) continue; merge(v); }
+      return d;
+    };
+    const step = 2, parts = [];
+    for (let y = 0; y < view.height; y += 1) {
+      const cy = y + 0.5; let prev = field(0, cy), start = prev < 0 ? 0 : null;
+      for (let x = step; x <= view.width + step; x += step) {
+        const v = field(Math.min(x, view.width), cy);
+        if (prev < 0 !== v < 0) {
+          const cross = x - step + (step * prev) / (prev - v);
+          if (v < 0) start = cross;
+          else if (start !== null) { parts.push(`M${start.toFixed(1)},${y}H${cross.toFixed(1)}V${y + 1}H${start.toFixed(1)}Z`); start = null; }
+        }
+        prev = v;
+      }
+      if (start !== null) parts.push(`M${start.toFixed(1)},${y}H${view.width}V${y + 1}H${start.toFixed(1)}Z`);
+    }
+    return parts.join("");
+  };
+
+  const pill = i => { if (!pills.has(i)) pills.set(i, { mass: 0, scale: 0, velocity: 0, outgoing: 0 }); return pills.get(i); };
+  const shape = (i, amount) => {
+    const r = rects[i]; if (!r || amount <= 0.002) return null;
+    const h = r.h * Math.min(1.08, 0.42 + 0.58 * Math.sqrt(Math.max(0, amount)));
+    const w = Math.max(h, r.w * Math.max(0, amount) ** 0.75);
+    return { x: r.x + r.w / 2 - w / 2, y: r.y + r.h / 2 - h / 2, w, h };
+  };
+  const plan = (drop, i, now, fresh) => {
+    const r = rects[i]; if (!r) return;
+    const reach = Math.max(0, S.spread);
+    const ex = r.x + r.w / 2 + (Math.random() - 0.5) * r.w * 0.45, ey = r.y + r.h / 2 + (Math.random() - 0.5) * r.h * 0.2;
+    const base = Math.max(0.15, S.animationTime / 1000), variance = (Math.random() - 0.5) * (Math.max(0, S.timeVariance) / 1000);
+    const duration = Math.max(0.15, base * (0.62 + Math.random() * 0.32) + variance * 0.6);
+    const out = Math.random() * Math.PI * 2, into = Math.random() * Math.PI * 2;
+    const burst = reach * (0.7 + Math.random() * 0.6), swing = reach * (0.55 + Math.random() * 0.55), carry = Math.min(duration / 3, 0.12);
+    drop.index = i; drop.start = now; drop.duration = duration;
+    drop.path = [drop.x, drop.y,
+      fresh ? drop.x + Math.cos(out) * burst * 1.6 : drop.x + drop.vx * carry,
+      fresh ? drop.y + Math.sin(out) * burst * 1.6 : drop.y + drop.vy * carry,
+      ex + Math.cos(into) * swing * 1.5, ey + Math.sin(into) * swing * 1.5, ex, ey];
+  };
+  const emit = (from, to, now) => {
+    const source = pills.get(from), r = rects[from];
+    if (!source || !r || !rects[to]) return;
+    const available = source.mass - source.outgoing; if (available <= 0.002) return;
+    const count = Math.min(MAX_DROPS - drops.length, Math.max(1, Math.round(Math.max(1, S.particleCount) * available)));
+    if (count <= 0) return;
+    const win = Math.max(0.15, S.animationTime / 1000) * 0.16;
+    for (let i = 0; i < count; i++) {
+      const mass = available / count; source.outgoing += mass;
+      drops.push({ x: r.x + r.w / 2 + (Math.random() - 0.5) * r.w * 0.6, y: r.y + r.h / 2 + (Math.random() - 0.5) * r.h * 0.3,
+        vx: 0, vy: 0, mass, size: 0.8 + Math.random() * 0.4, given: 0, source: from, index: to,
+        leave: now + Math.random() * win * 1000, emerged: 0, absorbed: 0, state: "waiting", tint: null });
+    }
+  };
+
+  const render = () => {
+    const height = rects[target]?.h ?? rects[0]?.h ?? 36;
+    const smooth = height * (0.18 + 0.5 * clamp01(S.gooeyness));
+    const boxes = [], blobs = [];
+    for (const [i, st] of pills) { const b = shape(i, st.scale); if (b) boxes.push({ cx: b.x + b.w / 2, cy: b.y + b.h / 2, hw: b.w / 2, hh: b.h / 2 }); }
+    for (const d of drops) {
+      if (d.state === "waiting") continue;
+      const radius = 0.26 * height * d.size * Math.min(d.emerged, 1 - d.absorbed); if (radius <= 0.05) continue;
+      const speed = Math.hypot(d.vx, d.vy), len = Math.min(radius * 1.1, speed * 0.018);
+      blobs.push({ x: d.x, y: d.y, r: radius, tx: speed > 0.01 ? (d.vx / speed) * len : 0, ty: speed > 0.01 ? (d.vy / speed) * len : 0, tint: d.tint });
+    }
+    if (boxes.length === 1 && !blobs.length) { const b = boxes[0]; overlay.style.clipPath = `path('${pillPath(b.cx - b.hw, b.cy - b.hh, b.hw * 2, b.hh * 2)}')`; }
+    else overlay.style.clipPath = `path('${trace(boxes, blobs, smooth) || "M0,0Z"}')`;
+    overlay.style.visibility = "visible";
+
+    if (!pipeline || !gl) {
+      const b = shape(target, 1);
+      if (b) { fallback.style.transform = `translate(${b.x.toFixed(2)}px, ${b.y.toFixed(2)}px)`; fallback.style.width = `${b.w}px`; fallback.style.height = `${b.h}px`; }
+      fallback.style.opacity = b ? "1" : "0";
+      return;
+    }
+    let slot = 0;
+    for (const b of boxes) { if (slot >= MAX_PILLS) break; pillData.set([b.cx + MARGIN, b.cy + MARGIN, b.hw, b.hh], slot * 4); slot++; }
+    pillData.fill(0, slot * 4);
+    let count = 0;
+    for (const b of blobs) {
+      if (count >= MAX_DROPS) break;
+      dropData.set([b.x + MARGIN, b.y + MARGIN, b.r, 0], count * 4); tailData.set([b.tx, b.ty], count * 2);
+      tintData.set((b.tint || S.pillRgb).slice(0, 3), count * 3); count++;
+    }
+    const { program, uniforms: u, buffer, position } = pipeline;
+    gl.viewport(0, 0, canvas.width, canvas.height); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.useProgram(program); gl.bindBuffer(gl.ARRAY_BUFFER, buffer); gl.enableVertexAttribArray(position);
+    gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+    gl.uniform2f(u.uSize, view.width + MARGIN * 2, view.height + MARGIN * 2);
+    gl.uniform1f(u.uRatio, canvas.width / Math.max(1, view.width + MARGIN * 2));
+    gl.uniform4fv(u.uPills, pillData);
+    gl.uniform4f(u.uHover, hover.x + MARGIN, hover.y + MARGIN, hover.w / 2, hover.h / 2);
+    gl.uniform4fv(u.uDrops, dropData); gl.uniform2fv(u.uTails, tailData); gl.uniform3fv(u.uTints, tintData);
+    gl.uniform1i(u.uCount, count); gl.uniform1f(u.uSmooth, smooth);
+    gl.uniform3f(u.uPill, S.pillRgb[0], S.pillRgb[1], S.pillRgb[2]);
+    gl.uniform4f(u.uHoverColor, S.hoverRgb[0], S.hoverRgb[1], S.hoverRgb[2], S.hoverRgb[3] * hover.alpha);
+    gl.uniform1f(u.uShadow, S.shadow);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  };
+
+  const frame = now => {
+    raf = 0;
+    const dt = Math.min(0.05, (now - last) / 1000 || 0); last = now;
+    const emergeTime = 0.09, absorbTime = 0.12;
+    for (let i = drops.length - 1; i >= 0; i--) {
+      const d = drops[i];
+      if (d.state === "waiting") { if (now < d.leave) continue; d.state = "flying"; plan(d, d.index, now, true); }
+      if (d.state === "flying") {
+        d.emerged = Math.min(1, d.emerged + dt / emergeTime);
+        const source = pills.get(d.source);
+        if (source && d.given < d.mass) {
+          const step = Math.min(d.mass * (dt / emergeTime), d.mass - d.given);
+          source.mass = Math.max(0, source.mass - step); source.outgoing = Math.max(0, source.outgoing - step); d.given += step;
+        }
+        const t = clamp01((now - (d.start ?? now)) / 1000 / (d.duration ?? 1)), e = travelEase(t);
+        const [x0, y0, x1, y1, x2, y2, x3, y3] = d.path ?? [d.x, d.y, d.x, d.y, d.x, d.y, d.x, d.y];
+        const x = bezier(x0, x1, x2, x3, e), y = bezier(y0, y1, y2, y3, e);
+        if (dt > 0) { d.vx = (x - d.x) / dt; d.vy = (y - d.y) / dt; }
+        d.x = x; d.y = y;
+        if (t >= 1) d.state = "absorbing";
+      }
+      if (d.state === "absorbing") {
+        const step = Math.min(1 - d.absorbed, dt / absorbTime);
+        d.absorbed += step; d.vx *= 0.8; d.vy *= 0.8;
+        const host = pill(d.index); host.mass = Math.min(1, host.mass + d.mass * step);
+        if (d.absorbed >= 1) drops.splice(i, 1);
+      }
+    }
+    const zeta = reduced ? 1 : 1 - 0.72 * clamp01(S.wobble), omega = 26;
+    const steps = Math.max(1, Math.ceil(dt / (1 / 240))), h = dt / steps;
+    for (const [i, st] of pills) {
+      for (let n = 0; n < steps; n++) { st.velocity += (omega * omega * (st.mass - st.scale) - 2 * zeta * omega * st.velocity) * h; st.scale += st.velocity * h; }
+      if (i !== target && st.mass <= 0.002 && st.outgoing <= 0.002 && Math.abs(st.scale) < 0.004) pills.delete(i);
+    }
+    if (hover.index >= 0 && rects[hover.index]) {
+      const r = rects[hover.index], k = 1 - Math.exp(-dt / 0.06);
+      hover.x += (r.x + r.w / 2 - hover.x) * k; hover.y += (r.y + r.h / 2 - hover.y) * k; hover.w += (r.w - hover.w) * k; hover.h += (r.h - hover.h) * k;
+    }
+    const hoverGoal = S.hoverEffect && hover.index >= 0 && hover.index !== target ? 1 : 0;
+    hover.alpha += (hoverGoal - hover.alpha) * (1 - Math.exp(-dt / 0.08));
+    render();
+    const host = pills.get(target);
+    const resting = drops.length === 0 && pills.size === 1 && host && Math.abs(host.mass - host.scale) < 0.0008 && Math.abs(host.velocity) < 0.004;
+    const hr = rects[hover.index];
+    const hovering = Math.abs(hoverGoal - hover.alpha) > 0.003 ||
+      (hr && Math.abs(hr.x + hr.w / 2 - hover.x) + Math.abs(hr.y + hr.h / 2 - hover.y) + Math.abs(hr.w - hover.w) + Math.abs(hr.h - hover.h) > 0.1);
+    if (!resting || hovering) raf = requestAnimationFrame(frame);
+    else { host.mass = 1; host.scale = 1; host.velocity = 0; hover.alpha = hoverGoal; render(); }
+  };
+  const wake = () => { if (raf) return; last = performance.now(); raf = requestAnimationFrame(frame); };
+  const settle = i => { pills.clear(); drops.length = 0; target = i; const st = pill(i); st.mass = 1; st.scale = 1; st.velocity = 0; render(); };
+  const go = i => {
+    if (i === target) return;
+    if (!rects[i] || reduced || target < 0) { settle(i); return; }
+    const now = performance.now(); target = i; pill(i);
+    for (const d of drops) {
+      d.index = i;
+      if (d.state === "flying") plan(d, i, now, false);
+      if (d.state === "absorbing") { d.state = "flying"; d.mass *= 1 - d.absorbed; d.absorbed = 0; plan(d, i, now, false); }
+    }
+    for (const from of [...pills.keys()]) if (from !== i) emit(from, i, now);
+    wake();
+  };
+
+  list.addEventListener("pointerover", e => {
+    if (e.pointerType !== "mouse") return;
+    const item = e.target.closest("[data-gooey-index]"); if (!item || !list.contains(item)) return;
+    const i = Number(item.dataset.gooeyIndex), r = rects[i]; if (!r) return;
+    if (hover.alpha < 0.01) { hover.x = r.x + r.w / 2; hover.y = r.y + r.h / 2; hover.w = r.w; hover.h = r.h; }
+    hover.index = i; wake();
+  });
+  list.addEventListener("pointerleave", () => { hover.index = -1; wake(); });
+  canvas.addEventListener("webglcontextlost", e => { e.preventDefault(); pipeline = null; showCanvas(); render(); });
+  canvas.addEventListener("webglcontextrestored", () => { pipeline = gl ? build(gl) : null; showCanvas(); render(); });
+  new ResizeObserver(() => { measure(); if (!drops.length) settle(target < 0 ? opts.initial : target); else render(); }).observe(stage);
+  measure(); settle(opts.initial);
+  return { go };
+}
+
 /* ---------- UI ---------- */
 const $ = id => document.getElementById(id);
 const KIND = { sale: "Sale", fee: "Fee", transfer: "To bank", withheld: "Held back", refund: "Refund" };
@@ -572,7 +865,9 @@ const drop = $("drop");
 ["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
 drop.addEventListener("drop", e => loadFiles(e.dataTransfer.files));
 $("holdOn").addEventListener("change", render);
-document.querySelectorAll('input[name="target"]').forEach(i => i.addEventListener("change", render));
+const targetInputs = [...document.querySelectorAll('input[name="target"]')];
+const goo = gooeyNav($("targetNav"), { initial: Math.max(0, targetInputs.findIndex(i => i.checked)) });
+targetInputs.forEach((input, i) => input.addEventListener("change", () => { goo.go(i); render(); }));
 $("pct").addEventListener("input", render);
 $("save").addEventListener("click", save);
 render();
