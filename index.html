@@ -28,7 +28,11 @@
   --line: #434c5e;
   --accent: #ebcb8b;
   --accent-ink: #242933;
+  --accent-text: #ebcb8b;
   --accent-soft: rgba(136, 192, 208, 0.12);
+  --toast-bg: rgb(59 66 82 / 0.85);
+  --knob: #eceff4;
+  --glow: rgba(235, 203, 139, 0.07);
   --cyan: #88c0d0;
   --in: #a3be8c;
   --out: #e0939a;
@@ -42,13 +46,30 @@
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --press: 100ms;
 }
+/* Light mode (Nord Snow Storm): the device's setting, unless the sun/moon switch chose (data-theme). Text colours deepened to pass 4.5:1. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --paper: #e5e9f0; --surface: #f2f4f8; --sunk: #e9edf3; --ink: #2e3440; --muted: #4c566a; --line: #cbd2dd;
+    --accent: #ebcb8b; --accent-ink: #2e3440; --accent-text: #8a6410; --accent-soft: rgba(94, 129, 172, 0.12);
+    --cyan: #476588; --in: #3f6b32; --out: #a3404a; --hold: #94512f; --hold-soft: rgba(208, 135, 112, 0.2); --warn-soft: rgba(191, 97, 106, 0.16);
+    --toast-bg: rgb(242 244 248 / 0.85); --knob: #ffffff; --glow: rgba(235, 203, 139, 0.25);
+  }
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --paper: #e5e9f0; --surface: #f2f4f8; --sunk: #e9edf3; --ink: #2e3440; --muted: #4c566a; --line: #cbd2dd;
+  --accent: #ebcb8b; --accent-ink: #2e3440; --accent-text: #8a6410; --accent-soft: rgba(94, 129, 172, 0.12);
+  --cyan: #476588; --in: #3f6b32; --out: #a3404a; --hold: #94512f; --hold-soft: rgba(208, 135, 112, 0.2); --warn-soft: rgba(191, 97, 106, 0.16);
+  --toast-bg: rgb(242 244 248 / 0.85); --knob: #ffffff; --glow: rgba(235, 203, 139, 0.25);
+}
 
 * { box-sizing: border-box; }
 html { min-height: 100%; background: var(--paper); -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; }
-button, .btn, .gooey-nav__item, .switch, .drop { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+button, .btn, .theme, .gooey-nav__item, .switch, .drop { touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 body {
   margin: 0;
-  background: radial-gradient(ellipse at 50% 0%, rgba(235, 203, 139, 0.07), transparent 48%), var(--paper); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5;
+  background: radial-gradient(ellipse at 50% 0%, var(--glow), transparent 48%), var(--paper); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   padding-block: 24px 18px;
@@ -61,15 +82,27 @@ body {
 .brand-copy strong { font-size: 15px; font-weight: 900; }
 .brand-copy > span { margin-top: 5px; color: var(--muted); font-size: 10px; letter-spacing: .3em; }
 .page-tag { color: var(--muted); font-size: 11px; letter-spacing: .18em; }
-.page-tag strong { margin-left: 8px; color: var(--accent); font-size: 20px; }
+.page-tag strong { margin-left: 8px; color: var(--accent-text); font-size: 20px; }
 @media (max-width: 560px) { .page-tag { display: none; } }
+.header-links { display: flex; align-items: center; gap: 14px; }
+/* the sun/moon switch (as on RemapData): shows the current mode, turning from one to the other */
+.theme { display: inline-grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 1px solid var(--line); border-radius: 10px; background: transparent; color: var(--muted); cursor: pointer; transition: transform var(--press) var(--ease-out), color 150ms ease; }
+.theme svg { grid-area: 1 / 1; width: 18px; height: 18px; transition: transform .35s var(--ease-out), opacity .2s ease; }
+.theme .sun, [data-mode="light"] .theme .moon { opacity: 0; transform: rotate(90deg) scale(.5); }
+[data-mode="light"] .theme .sun { opacity: 1; transform: none; }
+.theme:active { transform: scale(.92); }
+.theme:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+/* while switching, colours ease across instead of jumping (older browsers; not with Reduce Motion) */
+html.theming, html.theming * { transition: background-color .35s ease, color .35s ease, border-color .35s ease, fill .35s ease !important; }
+/* the circle reveal replaces the browser's own cross-fade between the two modes */
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
 a { color: var(--cyan); }
 a:hover { color: var(--ink); }
 
 header { display: grid; gap: 6px; }
 .eyebrow { margin: 0; color: var(--cyan); font-size: 10px; font-weight: 800; letter-spacing: .2em; }
 h1 { font-family: var(--display); font-weight: 900; font-size: clamp(30px, 4vw, 52px); line-height: 1.08; margin: 0; letter-spacing: -.045em; text-wrap: balance; }
-h1 .accent { color: var(--accent); }
+h1 .accent { color: var(--accent-text); }
 .intro-block { display: grid; gap: 10px; }
 .lede { margin: 0; color: var(--muted); max-width: 64ch; }
 .private { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
@@ -90,8 +123,8 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 18px; margin: 0; 
   transition: transform var(--press) var(--ease-out), border-color 150ms var(--ease-out), background-color 150ms var(--ease-out);
 }
 .drop:active { transform: scale(0.98); }
-.drop.over { border-color: var(--accent); background: rgba(235, 203, 139, 0.08); }
-.drop:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.drop.over { border-color: var(--accent-text); background: rgba(235, 203, 139, 0.08); }
+.drop:focus-within { outline: 2px solid var(--accent-text); outline-offset: 2px; }
 .drop strong { font-weight: 600; }
 .drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .files { display: grid; gap: 6px; font-family: var(--mono); font-size: 12.5px; }
@@ -117,7 +150,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 18px; margin: 0; 
 .switch { position: relative; width: 50px; height: 30px; flex: none; cursor: pointer; }
 .switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: inherit; z-index: 1; }
 .switch .track { position: absolute; inset: 0; border-radius: 999px; background: var(--line); transition: background-color 200ms var(--ease-out); }
-.switch .knob { position: absolute; width: 24px; height: 24px; left: 3px; top: 3px; border-radius: 50%; background: var(--ink); box-shadow: 0 1px 3px rgb(0 0 0 / .3); transition: transform 250ms var(--ease-out), width 150ms var(--ease-out); }
+.switch .knob { position: absolute; width: 24px; height: 24px; left: 3px; top: 3px; border-radius: 50%; background: var(--knob); box-shadow: 0 1px 3px rgb(0 0 0 / .3); transition: transform 250ms var(--ease-out), width 150ms var(--ease-out); }
 .switch input:checked ~ .track { background: var(--in); }
 .switch input:checked ~ .knob { transform: translateX(20px); }
 /* knob stretches while pressed, like iOS */
@@ -130,7 +163,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 18px; margin: 0; 
   width: 92px; font: 500 18px var(--mono); padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
   background: var(--sunk); color: var(--ink); font-variant-numeric: tabular-nums;
 }
-.pct input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.pct input:focus { outline: 2px solid var(--accent-text); outline-offset: 1px; }
 .pct input:disabled { opacity: .45; }
 .pct span { font: 500 18px var(--mono); color: var(--muted); }
 fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 10px; }
@@ -144,7 +177,7 @@ fieldset:disabled { opacity: .5; }
 .btn:active:not(:disabled) { transform: scale(0.97); filter: brightness(0.92); }
 .btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
-.btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--line); padding: 8px 12px; font-size: 13px; }
+.btn.ghost { background: transparent; color: var(--accent-text); border: 1px solid var(--line); padding: 8px 12px; font-size: 13px; }
 
 .main { display: grid; gap: 16px; min-width: 0; }
 .totals { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
@@ -191,25 +224,28 @@ td.desc { min-width: 220px; }
 .page-footer a { text-decoration: none; }
 
 .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); z-index: 10; transform: translate(-50%, 16px) scale(.98); display: flex; align-items: center; gap: 10px;
-  background: rgb(59 66 82 / 0.85); -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%); border: 1px solid rgb(236 239 244 / 0.08);
+  background: var(--toast-bg); -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%); border: 1px solid rgb(236 239 244 / 0.08);
   color: var(--ink); font-weight: 500; padding: 10px 16px; border-radius: 10px; font-size: 14px; opacity: 0; pointer-events: none; max-width: min(560px, calc(100% - 32px));
   transition: opacity 200ms var(--ease-out), transform 250ms var(--ease-out); }
 .toast::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--in); flex: none; }
 .toast.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
 @media (hover: hover) and (pointer: fine) {
   .btn:hover:not(:disabled) { filter: brightness(1.08); }
-  .drop:hover { border-color: var(--accent); background: rgba(235, 203, 139, 0.08); }
+  .theme:hover { color: var(--ink); }
+  .drop:hover { border-color: var(--accent-text); background: rgba(235, 203, 139, 0.08); }
   .gooey-nav__item:hover .gooey-nav__link { color: var(--ink); }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 1ms !important; animation: none !important; }
   .btn:active:not(:disabled), .drop:active { transform: none; }
+  .theme, .theme svg { transition: none; }
 }
 @media (prefers-reduced-transparency: reduce) {
   .toast { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
 @media (prefers-contrast: more) {
   :root { --line: #d8dee9; --muted: #d8dee9; }
+  :root[data-mode="light"] { --line: #4c566a; --muted: #2e3440; }
 }
 </style>
 </head>
@@ -221,7 +257,13 @@ td.desc { min-width: 220px; }
       <img class="brand-logo" src="assets/nf-logo.png" alt="" width="50" height="36">
       <span class="brand-copy"><strong>NIGHTFALL</strong><span>AUTOMOTIVE</span></span>
     </a>
-    <span class="page-tag">TOOLS <strong>SUMUP</strong></span>
+    <div class="header-links">
+      <span class="page-tag">TOOLS <strong>SUMUP</strong></span>
+      <button type="button" class="theme" id="theme" aria-label="Switch to light mode">
+        <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" fill="currentColor"/></svg>
+      </button>
+    </div>
   </header>
 
   <section class="intro-block" aria-labelledby="page-title">
@@ -783,7 +825,7 @@ void main() {
   canvas.addEventListener("webglcontextrestored", () => { pipeline = gl ? build(gl) : null; showCanvas(); render(); });
   new ResizeObserver(() => { measure(); if (!drops.length) settle(target < 0 ? opts.initial : target); else render(); }).observe(stage);
   measure(); settle(opts.initial);
-  return { go };
+  return { go, setHover(rgba) { S.hoverRgb = rgba; render(); } };
 }
 
 /* ---------- UI ---------- */
@@ -868,6 +910,37 @@ $("holdOn").addEventListener("change", render);
 const targetInputs = [...document.querySelectorAll('input[name="target"]')];
 const goo = gooeyNav($("targetNav"), { initial: Math.max(0, targetInputs.findIndex(i => i.checked)) });
 targetInputs.forEach((input, i) => input.addEventListener("change", () => { goo.go(i); render(); }));
+
+/* light/dark switch (as on RemapData): follows the device until clicked. The choice lasts until the
+   tab is closed; it isn't saved, because this page stores nothing. */
+const root = document.documentElement, sysLight = matchMedia("(prefers-color-scheme: light)");
+const themeMeta = document.querySelector('meta[name="theme-color"]');
+const mode = () => root.getAttribute("data-theme") || (sysLight.matches ? "light" : "dark");
+function showMode() {
+  const m = mode();
+  root.setAttribute("data-mode", m);
+  $("theme").setAttribute("aria-label", m === "light" ? "Switch to dark mode" : "Switch to light mode");
+  themeMeta.setAttribute("content", m === "light" ? "#e5e9f0" : "#20242d");
+  goo.setHover(m === "light" ? [0.18, 0.2, 0.25, 0.07] : [1, 1, 1, 0.08]);
+}
+$("theme").addEventListener("click", function () {
+  const next = mode() === "light" ? "dark" : "light", still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const apply = () => { root.setAttribute("data-theme", next); showMode(); };
+  if (still) { apply(); return; }
+  if (!document.startViewTransition) {  // older browsers: the colours ease across
+    root.classList.add("theming"); setTimeout(() => root.classList.remove("theming"), 400);
+    apply(); return;
+  }
+  // the new mode spreads out in a circle from the button, to the far corner of the screen
+  const r = this.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+  const far = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+  document.startViewTransition(apply).ready.then(() => {
+    root.animate({ clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${far}px at ${x}px ${y}px)`] },
+      { duration: 900, easing: "cubic-bezier(.23, 1, .32, 1)", pseudoElement: "::view-transition-new(root)" });
+  }).catch(() => {});
+});
+if (sysLight.addEventListener) sysLight.addEventListener("change", showMode);
+showMode();
 $("pct").addEventListener("input", render);
 $("save").addEventListener("click", save);
 render();
