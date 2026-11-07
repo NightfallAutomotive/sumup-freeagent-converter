@@ -34,7 +34,7 @@ separators.
 | FreeAgent | `Date,Amount,Description`, no header row | [FreeAgent CSV format](https://support.freeagent.com/hc/en-gb/articles/115001222564-Format-a-CSV-file-to-upload-a-bank-statement) |
 | QuickBooks Online | Header `Date,Description,Amount` (3-column) | Symbols such as `. , ( ) # :` are removed from descriptions, as [QuickBooks asks](https://quickbooks.intuit.com/learn-support/en-uk/help-article/bank-transactions/format-csv-files-excel-get-bank-transactions/L4BjLWckq_GB_en_GB). Choose the single Amount column and `dd/MM/yyyy` when uploading. |
 | Sage Accounting | Header `Date,Description,Amount` (3-column template) | [Sage bank statement import](https://gb-kb.sage.com/portal/app/portlets/results/viewsolution.jsp?solutionid=222001000100087). Not Sage 50 desktop, which needs nominal codes. |
-| Xero | Header `Date,Amount,Payee,Description,Reference` | Payee is `SumUp`; Reference is the SumUp transaction or payout ID. [Xero CSV import](https://central.xero.com/s/article/Import-a-bank-statement-in-CSV-format) |
+| Xero | Header `Date,Amount,Payee,Description,Reference` | Payee is `SumUp`; Reference is the SumUp transaction or payout ID. [Xero CSV import](https://help.xero.com/BankAccounts_Details_ImportTransCSV) |
 
 ### Money SumUp holds back
 
