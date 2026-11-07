@@ -26,13 +26,13 @@
   --ink: #eceff4;
   --muted: #aab4c5;
   --line: #434c5e;
-  --accent: #ebcb8b;
+  --accent: #81a1c1;
   --accent-ink: #242933;
-  --accent-text: #ebcb8b;
+  --accent-text: #88c0d0;
   --accent-soft: rgba(136, 192, 208, 0.12);
   --toast-bg: rgb(59 66 82 / 0.85);
   --knob: #eceff4;
-  --glow: rgba(235, 203, 139, 0.07);
+  --glow: rgba(129, 161, 193, 0.08);
   --cyan: #88c0d0;
   --in: #a3be8c;
   --out: #e0939a;
@@ -51,17 +51,17 @@
   :root:not([data-theme="dark"]) {
     color-scheme: light;
     --paper: #e5e9f0; --surface: #f2f4f8; --sunk: #e9edf3; --ink: #2e3440; --muted: #4c566a; --line: #cbd2dd;
-    --accent: #ebcb8b; --accent-ink: #2e3440; --accent-text: #8a6410; --accent-soft: rgba(94, 129, 172, 0.12);
+    --accent: #81a1c1; --accent-ink: #2e3440; --accent-text: #476588; --accent-soft: rgba(94, 129, 172, 0.12);
     --cyan: #476588; --in: #3f6b32; --out: #a3404a; --hold: #476588; --hold-soft: rgba(94, 129, 172, 0.16); --warn-soft: rgba(191, 97, 106, 0.16);
-    --toast-bg: rgb(242 244 248 / 0.85); --knob: #ffffff; --glow: rgba(235, 203, 139, 0.25);
+    --toast-bg: rgb(242 244 248 / 0.85); --knob: #ffffff; --glow: rgba(94, 129, 172, 0.18);
   }
 }
 :root[data-theme="light"] {
   color-scheme: light;
   --paper: #e5e9f0; --surface: #f2f4f8; --sunk: #e9edf3; --ink: #2e3440; --muted: #4c566a; --line: #cbd2dd;
-  --accent: #ebcb8b; --accent-ink: #2e3440; --accent-text: #8a6410; --accent-soft: rgba(94, 129, 172, 0.12);
+  --accent: #81a1c1; --accent-ink: #2e3440; --accent-text: #476588; --accent-soft: rgba(94, 129, 172, 0.12);
   --cyan: #476588; --in: #3f6b32; --out: #a3404a; --hold: #476588; --hold-soft: rgba(94, 129, 172, 0.16); --warn-soft: rgba(191, 97, 106, 0.16);
-  --toast-bg: rgb(242 244 248 / 0.85); --knob: #ffffff; --glow: rgba(235, 203, 139, 0.25);
+  --toast-bg: rgb(242 244 248 / 0.85); --knob: #ffffff; --glow: rgba(94, 129, 172, 0.18);
 }
 
 * { box-sizing: border-box; }
@@ -123,7 +123,7 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 18px; margin: 0; 
   transition: transform var(--press) var(--ease-out), border-color 150ms var(--ease-out), background-color 150ms var(--ease-out);
 }
 .drop:active { transform: scale(0.98); }
-.drop.over { border-color: var(--accent-text); background: rgba(235, 203, 139, 0.08); }
+.drop.over { border-color: var(--accent-text); background: rgba(129, 161, 193, 0.1); }
 .drop:focus-within { outline: 2px solid var(--accent-text); outline-offset: 2px; }
 .drop strong { font-weight: 600; }
 .drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
@@ -232,7 +232,7 @@ td.desc { min-width: 220px; }
 @media (hover: hover) and (pointer: fine) {
   .btn:hover:not(:disabled) { filter: brightness(1.08); }
   .theme:hover { color: var(--ink); }
-  .drop:hover { border-color: var(--accent-text); background: rgba(235, 203, 139, 0.08); }
+  .drop:hover { border-color: var(--accent-text); background: rgba(129, 161, 193, 0.1); }
   .gooey-nav__item:hover .gooey-nav__link { color: var(--ink); }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -562,7 +562,7 @@ function toCSV(rows, f) {
    without WebGL, and jumps straight there with Reduce Motion. */
 function gooeyNav(root, opts) {
   const S = Object.assign({ animationTime: 600, particleCount: 15, timeVariance: 300, spread: 56, gooeyness: 0.5, wobble: 0.5, hoverEffect: true,
-    pillRgb: [0.922, 0.796, 0.545], hoverRgb: [1, 1, 1, 0.08], shadow: 0 }, opts);
+    pillRgb: [0.506, 0.631, 0.757], hoverRgb: [1, 1, 1, 0.08], shadow: 0 }, opts);
   const stage = root.querySelector(".gooey-nav__stage"), canvas = root.querySelector(".gooey-nav__canvas");
   const list = root.querySelector(".gooey-nav__list:not(.gooey-nav__list--active)"), overlay = root.querySelector(".gooey-nav__list--active");
   const fallback = root.querySelector(".gooey-nav__fallback");
