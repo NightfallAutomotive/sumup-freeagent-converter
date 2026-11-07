@@ -1,0 +1,8 @@
+# Bank and card exports are private financial data: never commit them.
+*.csv
+*.xls
+*.xlsx
+__pycache__/
+.wrangler
+node_modules
+.DS_Store

@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Statement Bridge | Nightfall Automotive</title>
+<meta name="theme-color" content="#20242d">
+<meta name="description" content="Free SumUp to FreeAgent converter by Nightfall Automotive. Turn a SumUp transactions export into a FreeAgent bank statement CSV. Runs offline in your browser; nothing is uploaded.">
+<link rel="canonical" href="https://sumup.nightfalltools.co.uk/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://sumup.nightfalltools.co.uk/">
+<meta property="og:title" content="Statement Bridge | Nightfall Automotive">
+<meta property="og:description" content="Turn a SumUp transactions export into a FreeAgent bank statement CSV. Nothing is uploaded.">
+<meta property="og:image" content="https://sumup.nightfalltools.co.uk/assets/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<style>
+/* Layout: Nightfall Tools page shell (Nord dark), settings rail left, statement preview right; stacks on phones. */
+:root {
+  color-scheme: dark;
+  --paper: #20242d;
+  --surface: #2e3440;
+  --sunk: #282d38;
+  --ink: #eceff4;
+  --muted: #aab4c5;
+  --line: #434c5e;
+  --accent: #ebcb8b;
+  --accent-ink: #242933;
+  --accent-soft: rgba(136, 192, 208, 0.12);
+  --cyan: #88c0d0;
+  --in: #a3be8c;
+  --out: #e0939a;
+  --hold: #d08770;
+  --hold-soft: rgba(208, 135, 112, 0.15);
+  --warn-soft: rgba(191, 97, 106, 0.2);
+  --display: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --body: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, monospace;
+  --r: 12px;
+}
+
+* { box-sizing: border-box; }
+html { min-height: 100%; background: var(--paper); }
+body {
+  margin: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(235, 203, 139, 0.07), transparent 48%), var(--paper); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 18px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 28px; }
+.page-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+.brand { display: inline-flex; align-items: center; gap: 12px; color: var(--ink); text-decoration: none; }
+.brand-logo { display: block; width: auto; height: 36px; }
+.brand-copy { display: flex; flex-direction: column; line-height: 1.15; letter-spacing: .15em; }
+.brand-copy strong { font-size: 15px; font-weight: 900; }
+.brand-copy > span { margin-top: 5px; color: var(--muted); font-size: 10px; letter-spacing: .3em; }
+.page-tag { color: var(--muted); font-size: 11px; letter-spacing: .18em; }
+.page-tag strong { margin-left: 8px; color: var(--accent); font-size: 20px; }
+@media (max-width: 560px) { .page-tag { display: none; } }
+a { color: var(--cyan); }
+a:hover { color: var(--ink); }
+
+header { display: grid; gap: 6px; }
+.eyebrow { margin: 0; color: var(--cyan); font-size: 10px; font-weight: 800; letter-spacing: .2em; }
+h1 { font-family: var(--display); font-weight: 900; font-size: clamp(30px, 4vw, 52px); line-height: 1.08; margin: 0; letter-spacing: -.045em; text-wrap: balance; }
+h1 .accent { color: var(--accent); }
+.intro-block { display: grid; gap: 10px; }
+.lede { margin: 0; color: var(--muted); max-width: 64ch; }
+.private { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+.private::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--in); }
+
+.grid { display: grid; grid-template-columns: minmax(280px, 340px) 1fr; gap: 24px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+.rail { display: grid; gap: 16px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; display: grid; gap: 14px; }
+h2 { font-family: var(--display); font-weight: 800; font-size: 18px; margin: 0; letter-spacing: -.01em; }
+.label { font-size: 12px; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.hint { font-size: 13px; color: var(--muted); margin: 0; }
+
+.drop {
+  border: 1.5px dashed var(--line); border-radius: var(--r); padding: 22px 16px; text-align: center;
+  display: grid; gap: 6px; cursor: pointer; background: var(--sunk); transition: border-color .15s, background .15s;
+}
+.drop:hover, .drop.over { border-color: var(--accent); background: rgba(235, 203, 139, 0.08); }
+.drop:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.drop strong { font-weight: 600; }
+.drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.files { display: grid; gap: 6px; font-family: var(--mono); font-size: 12.5px; }
+.file { display: flex; justify-content: space-between; gap: 8px; padding: 6px 10px; background: var(--sunk); border-radius: 6px; overflow-wrap: anywhere; }
+.file span:last-child { color: var(--muted); white-space: nowrap; }
+.tag-example { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; background: var(--hold-soft); color: var(--hold); padding: 2px 8px; border-radius: 99px; justify-self: start; }
+
+.switch-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.switch { position: relative; width: 46px; height: 26px; flex: none; }
+.switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; z-index: 1; }
+.switch .track { position: absolute; inset: 0; border-radius: 99px; background: var(--line); transition: background .15s; }
+.switch .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--surface); box-shadow: 0 1px 2px rgba(0,0,0,.25); transition: transform .15s; }
+.switch input:checked + .track { background: var(--accent); }
+.switch input:checked + .track::after { transform: translateX(20px); }
+.switch input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.pct { display: flex; align-items: center; gap: 8px; }
+.pct input {
+  width: 92px; font: 500 18px var(--mono); padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--sunk); color: var(--ink); font-variant-numeric: tabular-nums;
+}
+.pct input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.pct input:disabled { opacity: .45; }
+.pct span { font: 500 18px var(--mono); color: var(--muted); }
+fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 10px; }
+fieldset:disabled { opacity: .5; }
+
+.btn {
+  font: 600 15px var(--body); border: 0; border-radius: 8px; padding: 12px 18px; cursor: pointer;
+  background: var(--accent); color: var(--accent-ink); display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--line); padding: 8px 12px; font-size: 13px; }
+
+.main { display: grid; gap: 16px; min-width: 0; }
+.totals { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+@media (max-width: 620px) { .totals { grid-template-columns: repeat(2, 1fr); } }
+.total { background: var(--surface); padding: 14px 16px; display: grid; gap: 2px; }
+.total b { font: 500 21px var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.total.zero b { color: var(--in); }
+.total.left b { color: var(--hold); }
+
+.notes { display: grid; gap: 8px; }
+.note { padding: 10px 14px; border-radius: 8px; font-size: 14px; background: var(--accent-soft); }
+.note.warn { background: var(--warn-soft); }
+.note.hold { background: var(--hold-soft); }
+.note b { font-weight: 600; }
+
+.statement { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.st-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.st-head .label { display: block; }
+.scroll { max-height: 560px; overflow: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+thead th { position: sticky; top: 0; background: var(--sunk); text-align: left; font: 600 11.5px var(--body); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); padding: 9px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 8px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tbody tr:last-child td { border-bottom: 0; }
+td.d { font-family: var(--mono); white-space: nowrap; color: var(--muted); font-variant-numeric: tabular-nums; }
+td.a { font-family: var(--mono); text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 500; }
+th.a { text-align: right; }
+td.a.pos { color: var(--in); }
+td.a.neg { color: var(--out); }
+td.desc { min-width: 220px; }
+.chip { display: inline-block; font: 500 11px var(--mono); letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 99px; background: var(--sunk); color: var(--muted); border: 1px solid var(--line); white-space: nowrap; }
+.chip.sale { color: var(--in); }
+.chip.fee, .chip.refund { color: var(--out); }
+.chip.transfer { color: var(--cyan); }
+.chip.withheld { color: var(--hold); background: var(--hold-soft); border-color: transparent; }
+.empty { padding: 40px 16px; text-align: center; color: var(--muted); }
+
+.guide { display: grid; gap: 10px; }
+.guide-table { overflow-x: auto; }
+.guide table td { font-size: 13.5px; }
+.guide td:first-child { white-space: nowrap; }
+
+.disclaimer { color: var(--muted); font-size: 12.5px; max-width: 70ch; margin: 0; }
+.page-footer { display: flex; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; letter-spacing: .12em; }
+.page-footer a { text-decoration: none; }
+
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--accent); color: var(--accent-ink); font-weight: 600; padding: 10px 16px; border-radius: 8px; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity .2s; max-width: calc(100% - 32px); }
+.toast.show { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="page-header">
+    <a class="brand" href="https://www.nightfalltools.co.uk/" aria-label="Nightfall Tools home">
+      <img class="brand-logo" src="assets/nf-logo.png" alt="" width="50" height="36">
+      <span class="brand-copy"><strong>NIGHTFALL</strong><span>AUTOMOTIVE</span></span>
+    </a>
+    <span class="page-tag">TOOLS <strong>SUMUP</strong></span>
+  </header>
+
+  <section class="intro-block" aria-labelledby="page-title">
+    <p class="eyebrow">NIGHTFALL TOOLS // SUMUP → FREEAGENT</p>
+    <h1 id="page-title">Statement <span class="accent">bridge.</span></h1>
+    <p class="lede">Turn a SumUp transactions export into a CSV that FreeAgent accepts as a bank statement. Each sale, card fee, held-back amount and payout to your bank becomes its own line, so the SumUp account in FreeAgent balances back to zero.</p>
+    <span class="private">Works offline. Your file is read into memory in this browser tab and never sent anywhere. Close the tab and it's gone.</span>
+  </section>
+
+  <div class="grid">
+    <aside class="rail">
+      <section class="panel" aria-labelledby="h-file">
+        <h2 id="h-file">1. Your SumUp export</h2>
+        <label class="drop" id="drop" for="file">
+          <input type="file" id="file" accept=".csv,text/csv" multiple>
+          <strong>Choose a CSV or drop it here</strong>
+          <span class="hint">Use SumUp's transactions report. You can add several months at once.</span>
+        </label>
+        <span class="tag-example" id="exampleTag">Showing example data</span>
+        <div class="files" id="files"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-hold">
+        <h2 id="h-hold">2. Money SumUp holds back</h2>
+        <div class="switch-row">
+          <label for="holdOn">Record held-back amounts<br><span class="hint">For example, repayments on a SumUp cash advance</span></label>
+          <span class="switch"><input type="checkbox" id="holdOn" checked><span class="track"></span></span>
+        </div>
+        <fieldset id="pctSet">
+          <label class="label" for="pct">Held back from each sale</label>
+          <div class="pct"><input type="number" id="pct" min="0" max="100" step="0.01" value="15" inputmode="decimal"><span>%</span></div>
+          <p class="hint">If your export lists what SumUp held back, the exact figures are used and checked against this rate. If it doesn't (the shorter SumUp report), this rate is used to work them out.</p>
+        </fieldset>
+      </section>
+
+      <button class="btn" id="save" type="button">Download FreeAgent CSV</button>
+    </aside>
+
+    <main class="main">
+      <div class="totals" id="totals"></div>
+      <div class="notes" id="notes"></div>
+      <section class="statement" aria-labelledby="h-st">
+        <div class="st-head">
+          <div><span class="label" id="h-st">Statement preview</span><span class="hint" id="count"></span></div>
+          <span class="hint">FreeAgent columns: Date, Amount, Description. No header row.</span>
+        </div>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Date</th><th>Line</th><th>Description</th><th class="a">Amount</th></tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel guide" aria-labelledby="h-guide">
+        <h2 id="h-guide">Uploading and explaining in FreeAgent</h2>
+        <p class="hint">In FreeAgent, add a bank account called "SumUp" and upload this file there, not to your main bank account. Then explain each kind of line like this:</p>
+        <div class="guide-table">
+          <table>
+            <tbody>
+              <tr><td><span class="chip sale">Sale</span></td><td>Sales income, or match it to the invoice it paid.</td></tr>
+              <tr><td><span class="chip fee">Fee</span></td><td>Bank, credit card and finance charges.</td></tr>
+              <tr><td><span class="chip withheld">Held back</span></td><td>Repayment of your SumUp cash advance or loan. Check with your accountant if you're unsure what it is.</td></tr>
+              <tr><td><span class="chip transfer">To bank</span></td><td>Transfer to your main bank account. There's one line per payout, so it matches the deposit on your bank statement.</td></tr>
+              <tr><td><span class="chip refund">Refund</span></td><td>Refund or chargeback against the original sale.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <p class="disclaimer">Independent tool. Not made by or affiliated with SumUp or FreeAgent. Check the totals against your SumUp payouts before reconciling, and ask your accountant if you're unsure how to explain a line.</p>
+
+  <footer class="page-footer">
+    <span>© <a href="https://nightfallautomotive.co.uk">NIGHTFALL AUTOMOTIVE</a></span>
+    <span>ECU REMAPPING · TUNING · DIAGNOSTICS</span>
+  </footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ---------- example data (fictional) ---------- */
+const EXAMPLE = `Email,Date,Transaction ID,Transaction type,Status,Card type,Last 4 digits,Process as,Payment method,Entry mode,Auth code,Description,Total,Net sale,Tax amount,Tip amount,Fee,Payout,Payout date,Payout ID,Reference
+,2026-10-14 10:12:40,EXAMPLE0001,Sale,Successful,VISA,,DEBIT,POS,CHIP,,1 x Custom amount,200.0,200.0,0.0,0.0,3.38,196.62,,,
+,2026-10-15 05:44:10,EXAMPLE0001,Payout,Adjusted,,,,,,,,30.0,,,,0.0,30.0,2026-10-14,,
+,2026-10-15 05:44:10,EXAMPLE0001,Payout,Paid,,,,,,,,170.0,,,,3.38,166.62,2026-10-15,SUMUP PID000000001,
+,2026-10-14 15:30:02,EXAMPLE0002,Sale,Successful,MASTERCARD,,DEBIT,APM,APPLE_PAY,,Booking deposit,125.0,125.0,0.0,0.0,3.13,121.87,,,
+,2026-10-15 05:44:10,EXAMPLE0002,Payout,Adjusted,,,,,,,,18.75,,,,0.0,18.75,2026-10-14,,
+,2026-10-15 05:44:10,EXAMPLE0002,Payout,Paid,,,,,,,,106.25,,,,3.13,103.12,2026-10-15,SUMUP PID000000001,
+,2026-10-16 11:02:51,EXAMPLE0003,Sale,Failed,UNKNOWN,,UNKNOWN,N/A,N/A,,1 x Custom amount,90.0,90.0,0.0,0.0,0.0,,,,
+,2026-10-16 11:04:19,EXAMPLE0004,Sale,Successful,VISA,,CREDIT,POS,CONTACTLESS,,1 x Custom amount,90.0,90.0,0.0,0.0,1.52,88.48,,,
+,2026-10-17 05:50:31,EXAMPLE0004,Payout,Adjusted,,,,,,,,13.5,,,,0.0,13.5,2026-10-16,,
+,2026-10-17 05:50:31,EXAMPLE0004,Payout,Paid,,,,,,,,76.5,,,,1.52,74.98,2026-10-17,SUMUP PID000000002,
+`;
+
+/* ---------- parsing helpers ---------- */
+function parseCSV(text) {
+  text = text.replace(/^\uFEFF/, "");
+  const rows = []; let row = [], f = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; }
+      else f += c;
+    } else if (c === '"') q = true;
+    else if (c === ",") { row.push(f); f = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(f); rows.push(row); row = []; f = "";
+    } else f += c;
+  }
+  if (f !== "" || row.length) { row.push(f); rows.push(row); }
+  return rows.filter(r => r.some(x => x.trim() !== ""));
+}
+function records(text) {
+  const [head, ...body] = parseCSV(text);
+  const cols = (head || []).map(h => h.trim());
+  return { cols, rows: body.map(r => Object.fromEntries(cols.map((c, i) => [c, (r[i] ?? "").trim()]))) };
+}
+function pence(v) {
+  v = (v || "").trim().replace(/[£,]/g, "");
+  if (!v) return 0;
+  if (!/^-?\d+(\.\d+)?$/.test(v)) throw new Error(`"${v}" is not a number`);
+  return Math.round(parseFloat(v) * 100);
+}
+function fmt(p) { const a = Math.abs(p); return (p < 0 ? "-" : "") + Math.floor(a / 100) + "." + String(a % 100).padStart(2, "0"); }
+function gbp(p) { const a = Math.abs(p); return (p < 0 ? "−£" : "£") + (Math.floor(a / 100)).toLocaleString("en-GB") + "." + String(a % 100).padStart(2, "0"); }
+const iso = s => s.trim().slice(0, 10);
+const dmy = d => `${d.slice(8, 10)}/${d.slice(5, 7)}/${d.slice(0, 4)}`;
+const clean = t => (t || "").replace(/[,"]/g, " ").replace(/\s+/g, " ").trim();
+const SKIP = new Set(["failed", "cancelled", "canceled", "declined"]);
+
+/* ---------- conversion ---------- */
+function convert(files, { holdOn, pct }) {
+  const rows = [], notes = [];
+  const add = (date, stamp, amount, desc, kind) => { if (amount) rows.push({ date, stamp, amount, desc, kind }); };
+  const seen = new Set();
+  const payouts = new Map(), held = new Map();
+  let heldIgnored = 0, mismatched = [], formats = new Set();
+  const saleTotal = new Map(), heldByTxn = new Map(), paidTxns = new Set();
+
+  for (const file of files) {
+    const { cols, rows: recs } = records(file.text);
+    const has = (...c) => c.every(x => cols.includes(x));
+    if (has("Transaction type", "Transaction ID", "Fee", "Payout", "Payout date", "Payout ID")) {
+      formats.add("detailed");
+      for (const r of recs) {
+        const key = [r["Date"], r["Transaction ID"], r["Transaction type"], r["Status"], r["Total"]].join("|");
+        if (seen.has(key)) continue; seen.add(key);
+        const kind = r["Transaction type"].toLowerCase(), status = r["Status"].toLowerCase();
+        const txn = r["Transaction ID"], stamp = r["Date"];
+        if (kind === "sale") {
+          if (SKIP.has(status)) continue;
+          if (status !== "successful") notes.push({ cls: "warn", html: `Sale <b>${txn}</b> has status "${r["Status"]}". It's included, but check it in SumUp.` });
+          const total = pence(r["Total"]), d = iso(stamp);
+          saleTotal.set(txn, total);
+          add(d, stamp, total, `SumUp sale ${txn} ${clean(r["Description"]) || "Card sale"}`.trim(), "sale");
+          add(d, stamp, -pence(r["Fee"]), `SumUp fee ${txn}`, "fee");
+        } else if (kind === "payout") {
+          const amt = pence(r["Payout"]), d = iso(r["Payout date"] || stamp);
+          if (status === "paid") {
+            paidTxns.add(txn);
+            const k = stamp + "|" + (r["Payout ID"] || "SUMUP PAYOUT");
+            const p = payouts.get(k) || { date: d, stamp, id: r["Payout ID"] || "SUMUP PAYOUT", amt: 0 };
+            p.amt += amt; payouts.set(k, p);
+          } else if (status === "adjusted") {
+            heldByTxn.set(txn, (heldByTxn.get(txn) || 0) + amt);
+            if (!holdOn) { heldIgnored += amt; continue; }
+            const k = stamp + "|" + d;
+            const h = held.get(k) || { date: d, stamp, amt: 0 };
+            h.amt += amt; held.set(k, h);
+          } else notes.push({ cls: "warn", html: `A payout for <b>${txn}</b> has status "${r["Status"]}" and was left out. Check it manually.` });
+        } else if (kind === "refund" || kind === "chargeback") {
+          if (SKIP.has(status)) continue;
+          const d = iso(stamp);
+          add(d, stamp, -Math.abs(pence(r["Total"])), `SumUp ${kind} ${txn} ${clean(r["Description"])}`.trim(), "refund");
+          add(d, stamp, -Math.abs(pence(r["Fee"])), `SumUp fee ${txn}`, "fee");
+        } else {
+          notes.push({ cls: "warn", html: `Unknown transaction type "${r["Transaction type"]}" for <b>${txn}</b> was left out.` });
+        }
+      }
+    } else if (has("Transaction code", "Status", "Total", "Fee amount", "Payout", "Payout date")) {
+      formats.add("simple");
+      for (const r of recs) {
+        const key = [r["Date"], r["Transaction code"], r["Status"], r["Total"]].join("|");
+        if (seen.has(key)) continue; seen.add(key);
+        const status = r["Status"].toLowerCase(), txn = r["Transaction code"], stamp = r["Date"];
+        if (SKIP.has(status)) continue;
+        const total = pence(r["Total"]), fee = pence(r["Fee amount"]), d = iso(stamp);
+        add(d, stamp, total, `SumUp sale ${txn} ${clean(r["Description"]) || "Card sale"}`.trim(), "sale");
+        add(d, stamp, -fee, `SumUp fee ${txn}`, "fee");
+        if (status === "paid out" && r["Payout date"]) {
+          const pd = iso(r["Payout date"]);
+          const h = holdOn ? Math.round(total * pct / 100) : 0;
+          const k = "S|" + pd;
+          const p = payouts.get(k) || { date: pd, stamp: pd + " 23:59", id: `(SumUp payout ${dmy(pd)})`, amt: 0 };
+          p.amt += pence(r["Payout"]) - h; payouts.set(k, p);
+          if (h) { const hk = "S|" + pd; const x = held.get(hk) || { date: pd, stamp: pd + " 23:58", amt: 0 }; x.amt += h; held.set(hk, x); }
+        } else {
+          notes.push({ cls: "warn", html: `Sale <b>${txn}</b> has status "${r["Status"]}" with no payout yet. The sale and fee are included; its payout will be in a later export.` });
+        }
+      }
+    } else {
+      throw new Error(`${file.name} doesn't look like a SumUp transactions export. It's missing columns such as "Transaction type" and "Payout". Export the transactions report from SumUp as CSV and try again.`);
+    }
+  }
+
+  for (const p of payouts.values()) add(p.date, p.stamp, -p.amt, `Transfer to bank ${p.id}`, "transfer");
+  for (const h of held.values()) add(h.date, h.stamp, -h.amt, "SumUp held back from payout", "withheld");
+  rows.sort((a, b) => (a.date + a.stamp).localeCompare(b.date + b.stamp));
+
+  if (formats.has("detailed") && holdOn) {
+    for (const txn of paidTxns) {
+      const total = saleTotal.get(txn); if (total == null) continue;
+      const expect = Math.round(total * pct / 100), actual = heldByTxn.get(txn) || 0;
+      if (Math.abs(expect - actual) > 1) mismatched.push(`${txn} (${gbp(actual)} held, ${pct}% would be ${gbp(expect)})`);
+    }
+    const totalHeld = [...held.values()].reduce((s, h) => s + h.amt, 0);
+    if (totalHeld) notes.push({ cls: "hold", html: `SumUp held back <b>${gbp(totalHeld)}</b> in total. The exact amounts from your export are used.` });
+    if (mismatched.length) notes.push({ cls: "hold", html: `${mismatched.length} sale${mismatched.length > 1 ? "s" : ""} didn't match ${pct}%: ${mismatched.slice(0, 4).join("; ")}${mismatched.length > 4 ? "; …" : ""}. That's normal when a cash advance starts or finishes being repaid.` });
+  }
+  if (formats.has("simple") && holdOn && pct > 0) notes.push({ cls: "hold", html: `This export doesn't say what SumUp held back, so ${pct}% of each paid-out sale was used. Check the "To bank" lines against your bank deposits.` });
+  if (heldIgnored) notes.push({ cls: "warn", html: `Your export shows SumUp held back <b>${gbp(heldIgnored)}</b>, but recording held-back amounts is switched off. That money will stay in the SumUp balance in FreeAgent.` });
+
+  const moneyIn = rows.filter(r => r.amount > 0).reduce((s, r) => s + r.amount, 0);
+  const moneyOut = rows.filter(r => r.amount < 0).reduce((s, r) => s + r.amount, 0);
+  const csv = rows.map(r => `${dmy(r.date)},${fmt(r.amount)},${r.desc}`).join("\r\n") + "\r\n";
+  return { rows, notes, moneyIn, moneyOut, csv };
+}
+
+/* ---------- UI ---------- */
+const $ = id => document.getElementById(id);
+const KIND = { sale: "Sale", fee: "Fee", transfer: "To bank", withheld: "Held back", refund: "Refund" };
+let files = [{ name: "example-sumup-export.csv", text: EXAMPLE, example: true }];
+let result = null;
+
+function settings() {
+  let pct = parseFloat($("pct").value);
+  if (!isFinite(pct) || pct < 0) pct = 0; if (pct > 100) pct = 100;
+  return { holdOn: $("holdOn").checked, pct };
+}
+function esc(s) { return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function render() {
+  const s = settings();
+  $("pctSet").disabled = !s.holdOn;
+  $("exampleTag").hidden = !files.some(f => f.example);
+  $("files").innerHTML = files.map(f => `<div class="file"><span>${esc(f.name)}</span><span>${f.example ? "example" : Math.max(0, f.text.trim().split(/\r?\n/).length - 1) + " rows"}</span></div>`).join("");
+
+  try {
+    result = convert(files, s);
+  } catch (e) {
+    result = null;
+    $("totals").innerHTML = "";
+    $("notes").innerHTML = `<div class="note warn">${esc(e.message)}</div>`;
+    $("rows").innerHTML = `<tr><td colspan="4" class="empty">Nothing to show yet.</td></tr>`;
+    $("count").textContent = ""; $("save").disabled = true;
+    return;
+  }
+  const r = result, left = r.moneyIn + r.moneyOut;
+  $("save").disabled = !r.rows.length;
+  $("count").textContent = ` · ${r.rows.length} lines`;
+  $("totals").innerHTML = [
+    ["Lines", r.rows.length, ""],
+    ["Money in", gbp(r.moneyIn), ""],
+    ["Money out", gbp(r.moneyOut), ""],
+    ["Left in SumUp", gbp(left), left === 0 ? "zero" : "left"],
+  ].map(([l, v, c]) => `<div class="total ${c}"><span class="label">${l}</span><b>${v}</b></div>`).join("");
+  const notes = [...r.notes];
+  if (left !== 0) notes.unshift({ cls: "hold", html: `<b>${gbp(left)}</b> has no matching payout in this export. Usually that's a sale paid out after the export ends, or one paid out another way. Check those sales in SumUp.` });
+  $("notes").innerHTML = notes.map(n => `<div class="note ${n.cls}">${n.html}</div>`).join("");
+  $("rows").innerHTML = r.rows.length ? r.rows.map(x => `<tr><td class="d">${dmy(x.date)}</td><td><span class="chip ${x.kind}">${KIND[x.kind]}</span></td><td class="desc">${esc(x.desc)}</td><td class="a ${x.amount > 0 ? "pos" : "neg"}">${gbp(x.amount)}</td></tr>`).join("")
+    : `<tr><td colspan="4" class="empty">No successful transactions found in this file.</td></tr>`;
+}
+
+async function loadFiles(list) {
+  const read = await Promise.all([...list].map(f => f.text().then(text => ({ name: f.name, text }))));
+  if (!read.length) return;
+  files = read; render();
+  toast(`Loaded ${read.length === 1 ? read[0].name : read.length + " files"}`);
+}
+
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2600); }
+
+function outName() {
+  const f = files[0]; if (!f || f.example) return "example-freeagent.csv";
+  return f.name.replace(/\.csv$/i, "") + "-freeagent.csv";
+}
+
+async function save() {
+  if (!result || !result.rows.length) return;
+  const filename = outName(), data = result.csv;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([data], { type: "text/csv" }));
+  a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast(`Saved ${filename}`);
+}
+
+$("file").addEventListener("change", e => { const list = [...e.target.files]; e.target.value = ""; loadFiles(list); });
+const drop = $("drop");
+["dragenter", "dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => loadFiles(e.dataTransfer.files));
+$("holdOn").addEventListener("change", render);
+$("pct").addEventListener("input", render);
+$("save").addEventListener("click", save);
+render();
+</script>
+</body>
+</html>

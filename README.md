@@ -1,0 +1,68 @@
+# Statement Bridge
+
+Turn a [SumUp](https://www.sumup.com/) transactions export into a CSV that
+[FreeAgent](https://www.freeagent.com/) can import as a bank statement.
+
+**Live tool: [sumup.nightfalltools.co.uk](https://sumup.nightfalltools.co.uk/)**
+
+Everything runs in your browser. The file you choose is read into memory in
+that tab and never uploaded; the page blocks all network requests with a
+Content Security Policy, works offline, and stores nothing. Close the tab and
+the data is gone.
+
+## How it works
+
+Set up a bank account called "SumUp" in FreeAgent and upload the converted
+file to it. Each SumUp transaction becomes lines that bring that account back
+to zero:
+
+| Line | Amount | Explain it in FreeAgent as |
+|---|---|---|
+| `SumUp sale <id> <description>` | + full sale | Sales income, or match to the invoice |
+| `SumUp fee <id>` | − card fee | Bank, credit card and finance charges |
+| `SumUp held back from payout` | − amount kept back | Cash advance or loan repayment |
+| `Transfer to bank <payout id>` | − payout | Transfer to your main bank account |
+
+Failed and cancelled payments are skipped. The output follows
+[FreeAgent's CSV format](https://support.freeagent.com/hc/en-gb/articles/115001222564-Format-a-CSV-file-to-upload-a-bank-statement):
+no header row, then `dd/mm/yyyy,amount,description`.
+
+### Money SumUp holds back
+
+If you have a SumUp cash advance, SumUp keeps a percentage of each sale
+before paying out. The page has a switch to turn these lines on or off, and a
+percentage setting (15% by default):
+
+- **Detailed export** (has `Transaction type` and `Payout ID` columns): SumUp's
+  exact held-back amounts are used, and any sale that doesn't match your
+  percentage is listed.
+- **Shorter export** (has `Transaction code` and `Fee amount` columns): it
+  doesn't say what was held back, so the percentage is used to work it out.
+
+## Running it yourself
+
+It's one HTML file with no build step and no dependencies. Download
+`index.html` and open it in any browser.
+
+There is also a command-line version for the detailed export:
+
+```sh
+python3 sumup_to_freeagent.py transactions-report.csv
+```
+
+## Deploying
+
+Deployed as a Cloudflare Workers static site from `wrangler.jsonc`. Files
+listed in `.assetsignore` are not uploaded, including any `*.csv`, so a
+SumUp export left in the folder can never be published. `_headers` sets the
+same no-network Content Security Policy as the page.
+
+## Disclaimer
+
+An independent tool from Nightfall Automotive, not made by or affiliated with
+SumUp or FreeAgent. Check the totals against your SumUp payouts before
+reconciling, and ask your accountant if you're unsure how to explain a line.
+
+## License
+
+[MIT](LICENSE)

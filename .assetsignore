@@ -1,0 +1,15 @@
+# Files Cloudflare must not upload as part of the site. The page only needs
+# index.html, _headers and assets/.
+# Never upload bank data: any CSV/XLS in this folder stays on this computer.
+*.csv
+*.xls
+*.xlsx
+*.py
+__pycache__
+.git
+.wrangler
+README.md
+LICENSE
+wrangler.jsonc
+.assetsignore
+.gitignore

@@ -1,0 +1,7 @@
+{
+  // Cloudflare Workers static site: serve the converter from the repo root.
+  // .assetsignore keeps everything else (the Python script, any CSVs...) out.
+  "name": "sumup-freeagent-converter",
+  "compatibility_date": "2026-10-19",
+  "assets": { "directory": "." }
+}
