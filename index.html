@@ -260,6 +260,20 @@ td.desc { min-width: 220px; }
   :root { --line: #d8dee9; --muted: #d8dee9; }
   :root[data-mode="light"] { --line: #4c566a; --muted: #2e3440; }
 }
+/* small phones: the logo and both header buttons stay on one line */
+@media (max-width: 420px) {
+  .page-header { gap: 12px; }
+  .header-links { gap: 8px; }
+  .brand { gap: 0 10px; }
+  .brand .brand-mark { margin-right: -10px; }
+  .brand-mark { height: 38px; }
+  .brand-copy strong { font-size: 14px; letter-spacing: .2em; }
+  .brand-copy > span { letter-spacing: .16em; white-space: nowrap; }
+}
+/* the smallest phones: drop the button's arrow so everything still fits */
+@media (max-width: 380px) {
+  .site-button svg { display: none; }
+}
 </style>
 </head>
 <body>
