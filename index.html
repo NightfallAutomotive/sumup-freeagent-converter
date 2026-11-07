@@ -36,8 +36,8 @@
   --cyan: #88c0d0;
   --in: #a3be8c;
   --out: #e0939a;
-  --hold: #d08770;
-  --hold-soft: rgba(208, 135, 112, 0.15);
+  --hold: #81a1c1;
+  --hold-soft: rgba(94, 129, 172, 0.2);
   --warn-soft: rgba(191, 97, 106, 0.2);
   --display: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --body: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -52,7 +52,7 @@
     color-scheme: light;
     --paper: #e5e9f0; --surface: #f2f4f8; --sunk: #e9edf3; --ink: #2e3440; --muted: #4c566a; --line: #cbd2dd;
     --accent: #ebcb8b; --accent-ink: #2e3440; --accent-text: #8a6410; --accent-soft: rgba(94, 129, 172, 0.12);
-    --cyan: #476588; --in: #3f6b32; --out: #a3404a; --hold: #94512f; --hold-soft: rgba(208, 135, 112, 0.2); --warn-soft: rgba(191, 97, 106, 0.16);
+    --cyan: #476588; --in: #3f6b32; --out: #a3404a; --hold: #476588; --hold-soft: rgba(94, 129, 172, 0.16); --warn-soft: rgba(191, 97, 106, 0.16);
     --toast-bg: rgb(242 244 248 / 0.85); --knob: #ffffff; --glow: rgba(235, 203, 139, 0.25);
   }
 }
@@ -60,7 +60,7 @@
   color-scheme: light;
   --paper: #e5e9f0; --surface: #f2f4f8; --sunk: #e9edf3; --ink: #2e3440; --muted: #4c566a; --line: #cbd2dd;
   --accent: #ebcb8b; --accent-ink: #2e3440; --accent-text: #8a6410; --accent-soft: rgba(94, 129, 172, 0.12);
-  --cyan: #476588; --in: #3f6b32; --out: #a3404a; --hold: #94512f; --hold-soft: rgba(208, 135, 112, 0.2); --warn-soft: rgba(191, 97, 106, 0.16);
+  --cyan: #476588; --in: #3f6b32; --out: #a3404a; --hold: #476588; --hold-soft: rgba(94, 129, 172, 0.16); --warn-soft: rgba(191, 97, 106, 0.16);
   --toast-bg: rgb(242 244 248 / 0.85); --knob: #ffffff; --glow: rgba(235, 203, 139, 0.25);
 }
 
@@ -506,7 +506,7 @@ function convert(files, { holdOn, pct }) {
       if (Math.abs(expect - actual) > 1) mismatched.push(`${txn} (${gbp(actual)} held, ${pct}% would be ${gbp(expect)})`);
     }
     const totalHeld = [...held.values()].reduce((s, h) => s + h.amt, 0);
-    if (totalHeld) notes.push({ cls: "hold", html: `SumUp held back <b>${gbp(totalHeld)}</b> in total. The exact amounts from your export are used.` });
+    if (totalHeld) notes.push({ cls: "warn", html: `SumUp held back <b>${gbp(totalHeld)}</b> in total. The exact amounts from your export are used.` });
     if (mismatched.length) notes.push({ cls: "hold", html: `${mismatched.length} sale${mismatched.length > 1 ? "s" : ""} didn't match ${pct}%: ${mismatched.slice(0, 4).join("; ")}${mismatched.length > 4 ? "; …" : ""}. That's normal when a cash advance starts or finishes being repaid.` });
   }
   if (formats.has("simple") && holdOn && pct > 0) notes.push({ cls: "hold", html: `This export doesn't say what SumUp held back, so ${pct}% of each paid-out sale was used. Check the "To bank" lines against your bank deposits.` });
