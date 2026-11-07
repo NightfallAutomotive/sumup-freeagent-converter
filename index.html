@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Statement Bridge | Nightfall Automotive</title>
 <meta name="theme-color" content="#20242d">
-<meta name="description" content="Free SumUp to FreeAgent converter by Nightfall Automotive. Turn a SumUp transactions export into a FreeAgent bank statement CSV. Runs offline in your browser; nothing is uploaded.">
+<meta name="description" content="Free SumUp statement converter by Nightfall Automotive. Turn a SumUp transactions export into a bank statement CSV for FreeAgent, QuickBooks, Sage or Xero. Runs offline in your browser; nothing is uploaded.">
 <link rel="canonical" href="https://sumup.nightfalltools.co.uk/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://sumup.nightfalltools.co.uk/">
 <meta property="og:title" content="Statement Bridge | Nightfall Automotive">
-<meta property="og:description" content="Turn a SumUp transactions export into a FreeAgent bank statement CSV. Nothing is uploaded.">
+<meta property="og:description" content="Turn a SumUp transactions export into a bank statement CSV for FreeAgent, QuickBooks, Sage or Xero. Nothing is uploaded.">
 <meta property="og:image" content="https://sumup.nightfalltools.co.uk/assets/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
@@ -94,6 +94,13 @@ h2 { font-family: var(--display); font-weight: 800; font-size: 18px; margin: 0; 
 .file span:last-child { color: var(--muted); white-space: nowrap; }
 .tag-example { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; background: var(--hold-soft); color: var(--hold); padding: 2px 8px; border-radius: 99px; justify-self: start; }
 
+.targets { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.target { position: relative; display: block; cursor: pointer; }
+.target input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.target span { display: block; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--sunk); font-weight: 600; font-size: 14px; text-align: center; transition: border-color .15s, background .15s; }
+.target:hover span { border-color: var(--muted); }
+.target input:checked + span { border-color: var(--accent); background: rgba(235, 203, 139, 0.1); color: var(--accent); }
+.target input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
 .switch-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .switch { position: relative; width: 46px; height: 26px; flex: none; }
 .switch input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; z-index: 1; }
@@ -184,9 +191,9 @@ td.desc { min-width: 220px; }
   </header>
 
   <section class="intro-block" aria-labelledby="page-title">
-    <p class="eyebrow">NIGHTFALL TOOLS // SUMUP → FREEAGENT</p>
+    <p class="eyebrow">NIGHTFALL TOOLS // SUMUP → FREEAGENT · QUICKBOOKS · SAGE · XERO</p>
     <h1 id="page-title">Statement <span class="accent">bridge.</span></h1>
-    <p class="lede">Turn a SumUp transactions export into a CSV that FreeAgent accepts as a bank statement. Each sale, card fee, held-back amount and payout to your bank becomes its own line, so the SumUp account in FreeAgent balances back to zero.</p>
+    <p class="lede">Turn a SumUp transactions export into a bank statement CSV for FreeAgent, QuickBooks, Sage Accounting or Xero. Each sale, card fee, held-back amount and payout to your bank becomes its own line, so the SumUp account in your books balances back to zero.</p>
     <span class="private">Works offline. Your file is read into memory in this browser tab and never sent anywhere. Close the tab and it's gone.</span>
   </section>
 
@@ -203,8 +210,18 @@ td.desc { min-width: 220px; }
         <div class="files" id="files"></div>
       </section>
 
+      <section class="panel" aria-labelledby="h-target">
+        <h2 id="h-target">2. Your accounts software</h2>
+        <div class="targets" role="radiogroup" aria-labelledby="h-target">
+          <label class="target"><input type="radio" name="target" id="t-freeagent" value="freeagent" checked><span>FreeAgent</span></label>
+          <label class="target"><input type="radio" name="target" id="t-quickbooks" value="quickbooks"><span>QuickBooks</span></label>
+          <label class="target"><input type="radio" name="target" id="t-sage" value="sage"><span>Sage Accounting</span></label>
+          <label class="target"><input type="radio" name="target" id="t-xero" value="xero"><span>Xero</span></label>
+        </div>
+      </section>
+
       <section class="panel" aria-labelledby="h-hold">
-        <h2 id="h-hold">2. Money SumUp holds back</h2>
+        <h2 id="h-hold">3. Money SumUp holds back</h2>
         <div class="switch-row">
           <label for="holdOn">Record held-back amounts<br><span class="hint">For example, repayments on a SumUp cash advance</span></label>
           <span class="switch"><input type="checkbox" id="holdOn" checked><span class="track"></span></span>
@@ -225,7 +242,7 @@ td.desc { min-width: 220px; }
       <section class="statement" aria-labelledby="h-st">
         <div class="st-head">
           <div><span class="label" id="h-st">Statement preview</span><span class="hint" id="count"></span></div>
-          <span class="hint">FreeAgent columns: Date, Amount, Description. No header row.</span>
+          <span class="hint" id="cols"></span>
         </div>
         <div class="scroll">
           <table>
@@ -236,13 +253,13 @@ td.desc { min-width: 220px; }
       </section>
 
       <section class="panel guide" aria-labelledby="h-guide">
-        <h2 id="h-guide">Uploading and explaining in FreeAgent</h2>
-        <p class="hint">In FreeAgent, add a bank account called "SumUp" and upload this file there, not to your main bank account. Then explain each kind of line like this:</p>
+        <h2 id="h-guide">Importing and explaining the lines</h2>
+        <p class="hint"><span id="upload"></span> Use this separate SumUp account, not your main bank account. Then explain or categorise each kind of line like this:</p>
         <div class="guide-table">
           <table>
             <tbody>
               <tr><td><span class="chip sale">Sale</span></td><td>Sales income, or match it to the invoice it paid.</td></tr>
-              <tr><td><span class="chip fee">Fee</span></td><td>Bank, credit card and finance charges.</td></tr>
+              <tr><td><span class="chip fee">Fee</span></td><td>Bank charges or merchant fees.</td></tr>
               <tr><td><span class="chip withheld">Held back</span></td><td>Repayment of your SumUp cash advance or loan. Check with your accountant if you're unsure what it is.</td></tr>
               <tr><td><span class="chip transfer">To bank</span></td><td>Transfer to your main bank account. There's one line per payout, so it matches the deposit on your bank statement.</td></tr>
               <tr><td><span class="chip refund">Refund</span></td><td>Refund or chargeback against the original sale.</td></tr>
@@ -253,7 +270,7 @@ td.desc { min-width: 220px; }
     </main>
   </div>
 
-  <p class="disclaimer">Independent tool. Not made by or affiliated with SumUp or FreeAgent. Check the totals against your SumUp payouts before reconciling, and ask your accountant if you're unsure how to explain a line.</p>
+  <p class="disclaimer">Independent tool. Not made by or affiliated with SumUp, FreeAgent, Intuit QuickBooks, Sage or Xero. Check the totals against your SumUp payouts before reconciling, and ask your accountant if you're unsure how to explain a line.</p>
 
   <footer class="page-footer">
     <span>© <a href="https://nightfallautomotive.co.uk">NIGHTFALL AUTOMOTIVE</a></span>
@@ -317,7 +334,7 @@ const SKIP = new Set(["failed", "cancelled", "canceled", "declined"]);
 /* ---------- conversion ---------- */
 function convert(files, { holdOn, pct }) {
   const rows = [], notes = [];
-  const add = (date, stamp, amount, desc, kind) => { if (amount) rows.push({ date, stamp, amount, desc, kind }); };
+  const add = (date, stamp, amount, desc, kind, ref = "") => { if (amount) rows.push({ date, stamp, amount, desc, kind, ref }); };
   const seen = new Set();
   const payouts = new Map(), held = new Map();
   let heldIgnored = 0, mismatched = [], formats = new Set();
@@ -338,8 +355,8 @@ function convert(files, { holdOn, pct }) {
           if (status !== "successful") notes.push({ cls: "warn", html: `Sale <b>${txn}</b> has status "${r["Status"]}". It's included, but check it in SumUp.` });
           const total = pence(r["Total"]), d = iso(stamp);
           saleTotal.set(txn, total);
-          add(d, stamp, total, `SumUp sale ${txn} ${clean(r["Description"]) || "Card sale"}`.trim(), "sale");
-          add(d, stamp, -pence(r["Fee"]), `SumUp fee ${txn}`, "fee");
+          add(d, stamp, total, `SumUp sale ${txn} ${clean(r["Description"]) || "Card sale"}`.trim(), "sale", txn);
+          add(d, stamp, -pence(r["Fee"]), `SumUp fee ${txn}`, "fee", txn);
         } else if (kind === "payout") {
           const amt = pence(r["Payout"]), d = iso(r["Payout date"] || stamp);
           if (status === "paid") {
@@ -357,8 +374,8 @@ function convert(files, { holdOn, pct }) {
         } else if (kind === "refund" || kind === "chargeback") {
           if (SKIP.has(status)) continue;
           const d = iso(stamp);
-          add(d, stamp, -Math.abs(pence(r["Total"])), `SumUp ${kind} ${txn} ${clean(r["Description"])}`.trim(), "refund");
-          add(d, stamp, -Math.abs(pence(r["Fee"])), `SumUp fee ${txn}`, "fee");
+          add(d, stamp, -Math.abs(pence(r["Total"])), `SumUp ${kind} ${txn} ${clean(r["Description"])}`.trim(), "refund", txn);
+          add(d, stamp, -Math.abs(pence(r["Fee"])), `SumUp fee ${txn}`, "fee", txn);
         } else {
           notes.push({ cls: "warn", html: `Unknown transaction type "${r["Transaction type"]}" for <b>${txn}</b> was left out.` });
         }
@@ -371,8 +388,8 @@ function convert(files, { holdOn, pct }) {
         const status = r["Status"].toLowerCase(), txn = r["Transaction code"], stamp = r["Date"];
         if (SKIP.has(status)) continue;
         const total = pence(r["Total"]), fee = pence(r["Fee amount"]), d = iso(stamp);
-        add(d, stamp, total, `SumUp sale ${txn} ${clean(r["Description"]) || "Card sale"}`.trim(), "sale");
-        add(d, stamp, -fee, `SumUp fee ${txn}`, "fee");
+        add(d, stamp, total, `SumUp sale ${txn} ${clean(r["Description"]) || "Card sale"}`.trim(), "sale", txn);
+        add(d, stamp, -fee, `SumUp fee ${txn}`, "fee", txn);
         if (status === "paid out" && r["Payout date"]) {
           const pd = iso(r["Payout date"]);
           const h = holdOn ? Math.round(total * pct / 100) : 0;
@@ -389,8 +406,8 @@ function convert(files, { holdOn, pct }) {
     }
   }
 
-  for (const p of payouts.values()) add(p.date, p.stamp, -p.amt, `Transfer to bank ${p.id}`, "transfer");
-  for (const h of held.values()) add(h.date, h.stamp, -h.amt, "SumUp held back from payout", "withheld");
+  for (const p of payouts.values()) add(p.date, p.stamp, -p.amt, `Transfer to bank ${p.id}`, "transfer", p.id.replace(/[()]/g, ""));
+  for (const h of held.values()) add(h.date, h.stamp, -h.amt, "SumUp held back from payout", "withheld", "Held back " + dmy(h.date));
   rows.sort((a, b) => (a.date + a.stamp).localeCompare(b.date + b.stamp));
 
   if (formats.has("detailed") && holdOn) {
@@ -404,12 +421,49 @@ function convert(files, { holdOn, pct }) {
     if (mismatched.length) notes.push({ cls: "hold", html: `${mismatched.length} sale${mismatched.length > 1 ? "s" : ""} didn't match ${pct}%: ${mismatched.slice(0, 4).join("; ")}${mismatched.length > 4 ? "; …" : ""}. That's normal when a cash advance starts or finishes being repaid.` });
   }
   if (formats.has("simple") && holdOn && pct > 0) notes.push({ cls: "hold", html: `This export doesn't say what SumUp held back, so ${pct}% of each paid-out sale was used. Check the "To bank" lines against your bank deposits.` });
-  if (heldIgnored) notes.push({ cls: "warn", html: `Your export shows SumUp held back <b>${gbp(heldIgnored)}</b>, but recording held-back amounts is switched off. That money will stay in the SumUp balance in FreeAgent.` });
+  if (heldIgnored) notes.push({ cls: "warn", html: `Your export shows SumUp held back <b>${gbp(heldIgnored)}</b>, but recording held-back amounts is switched off. That money will stay in the SumUp balance in your accounts.` });
 
   const moneyIn = rows.filter(r => r.amount > 0).reduce((s, r) => s + r.amount, 0);
   const moneyOut = rows.filter(r => r.amount < 0).reduce((s, r) => s + r.amount, 0);
-  const csv = rows.map(r => `${dmy(r.date)},${fmt(r.amount)},${r.desc}`).join("\r\n") + "\r\n";
-  return { rows, notes, moneyIn, moneyOut, csv };
+  return { rows, notes, moneyIn, moneyOut };
+}
+
+/* ---------- output formats ----------
+   FreeAgent: no header; Date, Amount, Description.
+   QuickBooks Online (UK): 3-column Date, Description, Amount; no symbols in the description.
+   Sage Accounting: 3-column Date, Description, Amount, in that order; description never blank.
+   Xero: Date, Amount, Payee, Description, Reference; money in positive, money out negative. */
+const qbText = t => t.replace(/[!@#$%^&*(),.?":{}|<>]/g, " ").replace(/\s+/g, " ").trim();
+const FORMATS = {
+  freeagent: {
+    name: "FreeAgent", slug: "freeagent", header: null,
+    columns: "Date, Amount, Description. No header row.",
+    row: r => [dmy(r.date), fmt(r.amount), r.desc],
+    upload: 'In FreeAgent, go to Banking and add a bank account called "SumUp". Open it, choose Upload a statement, and pick this file.',
+  },
+  quickbooks: {
+    name: "QuickBooks", slug: "quickbooks", header: ["Date", "Description", "Amount"],
+    columns: "Date, Description, Amount (the 3-column layout).",
+    row: r => [dmy(r.date), qbText(r.desc), fmt(r.amount)],
+    upload: 'In QuickBooks Online, add a bank account called "SumUp" (set it up as a manual account, with no bank connection). In Bank transactions, choose Upload from file and pick this file. When asked, pick the single Amount column and the date format dd/MM/yyyy.',
+  },
+  sage: {
+    name: "Sage Accounting", slug: "sage", header: ["Date", "Description", "Amount"],
+    columns: "Date, Description, Amount (Sage's 3-column template).",
+    row: r => [dmy(r.date), r.desc, fmt(r.amount)],
+    upload: 'In Sage Accounting, go to Banking and add a bank account called "SumUp". Under Actions, choose Import from bank statement and pick this file. Set the date format to DD/MM/YYYY.',
+  },
+  xero: {
+    name: "Xero", slug: "xero", header: ["Date", "Amount", "Payee", "Description", "Reference"],
+    columns: "Date, Amount, Payee, Description, Reference.",
+    row: r => [dmy(r.date), fmt(r.amount), "SumUp", r.desc, r.ref],
+    upload: 'In Xero, go to Accounting, then Bank accounts, and add a bank account called "SumUp". From its menu, choose Import a Statement and pick this file. The first time, match each column to the field with the same name.',
+  },
+};
+function toCSV(rows, f) {
+  const lines = rows.map(f.row);
+  if (f.header) lines.unshift(f.header);
+  return lines.map(l => l.join(",")).join("\r\n") + "\r\n";
 }
 
 /* ---------- UI ---------- */
@@ -418,6 +472,7 @@ const KIND = { sale: "Sale", fee: "Fee", transfer: "To bank", withheld: "Held ba
 let files = [{ name: "example-sumup-export.csv", text: EXAMPLE, example: true }];
 let result = null;
 
+function target() { return FORMATS[document.querySelector('input[name="target"]:checked')?.value] || FORMATS.freeagent; }
 function settings() {
   let pct = parseFloat($("pct").value);
   if (!isFinite(pct) || pct < 0) pct = 0; if (pct > 100) pct = 100;
@@ -426,8 +481,11 @@ function settings() {
 function esc(s) { return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 
 function render() {
-  const s = settings();
+  const s = settings(), f = target();
   $("pctSet").disabled = !s.holdOn;
+  $("save").textContent = `Download ${f.name} CSV`;
+  $("cols").textContent = `${f.name} columns: ${f.columns}`;
+  $("upload").textContent = f.upload;
   $("exampleTag").hidden = !files.some(f => f.example);
   $("files").innerHTML = files.map(f => `<div class="file"><span>${esc(f.name)}</span><span>${f.example ? "example" : Math.max(0, f.text.trim().split(/\r?\n/).length - 1) + " rows"}</span></div>`).join("");
 
@@ -467,13 +525,14 @@ async function loadFiles(list) {
 function toast(msg) { const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2600); }
 
 function outName() {
-  const f = files[0]; if (!f || f.example) return "example-freeagent.csv";
-  return f.name.replace(/\.csv$/i, "") + "-freeagent.csv";
+  const f = files[0], slug = target().slug;
+  if (!f || f.example) return `example-${slug}.csv`;
+  return f.name.replace(/\.csv$/i, "") + `-${slug}.csv`;
 }
 
 async function save() {
   if (!result || !result.rows.length) return;
-  const filename = outName(), data = result.csv;
+  const filename = outName(), data = toCSV(result.rows, target());
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([data], { type: "text/csv" }));
   a.download = filename; document.body.appendChild(a); a.click(); a.remove();
@@ -487,6 +546,7 @@ const drop = $("drop");
 ["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
 drop.addEventListener("drop", e => loadFiles(e.dataTransfer.files));
 $("holdOn").addEventListener("change", render);
+document.querySelectorAll('input[name="target"]').forEach(i => i.addEventListener("change", render));
 $("pct").addEventListener("input", render);
 $("save").addEventListener("click", save);
 render();

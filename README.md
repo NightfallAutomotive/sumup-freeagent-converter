@@ -1,7 +1,7 @@
 # Statement Bridge
 
-Turn a [SumUp](https://www.sumup.com/) transactions export into a CSV that
-[FreeAgent](https://www.freeagent.com/) can import as a bank statement.
+Turn a [SumUp](https://www.sumup.com/) transactions export into a bank
+statement CSV for FreeAgent, QuickBooks Online, Sage Accounting or Xero.
 
 **Live tool: [sumup.nightfalltools.co.uk](https://sumup.nightfalltools.co.uk/)**
 
@@ -12,20 +12,29 @@ the data is gone.
 
 ## How it works
 
-Set up a bank account called "SumUp" in FreeAgent and upload the converted
-file to it. Each SumUp transaction becomes lines that bring that account back
+Set up a bank account called "SumUp" in your accounts software and import
+the converted file into it. Each SumUp transaction becomes lines that bring that account back
 to zero:
 
-| Line | Amount | Explain it in FreeAgent as |
+| Line | Amount | Explain it as |
 |---|---|---|
 | `SumUp sale <id> <description>` | + full sale | Sales income, or match to the invoice |
-| `SumUp fee <id>` | − card fee | Bank, credit card and finance charges |
+| `SumUp fee <id>` | − card fee | Bank charges or merchant fees |
 | `SumUp held back from payout` | − amount kept back | Cash advance or loan repayment |
 | `Transfer to bank <payout id>` | − payout | Transfer to your main bank account |
 
-Failed and cancelled payments are skipped. The output follows
-[FreeAgent's CSV format](https://support.freeagent.com/hc/en-gb/articles/115001222564-Format-a-CSV-file-to-upload-a-bank-statement):
-no header row, then `dd/mm/yyyy,amount,description`.
+Failed and cancelled payments are skipped. Dates are `dd/mm/yyyy`, money in
+is positive and money out negative, with no currency symbols or thousands
+separators.
+
+### Output formats
+
+| Software | Layout | Notes |
+|---|---|---|
+| FreeAgent | `Date,Amount,Description`, no header row | [FreeAgent CSV format](https://support.freeagent.com/hc/en-gb/articles/115001222564-Format-a-CSV-file-to-upload-a-bank-statement) |
+| QuickBooks Online | Header `Date,Description,Amount` (3-column) | Symbols such as `. , ( ) # :` are removed from descriptions, as [QuickBooks asks](https://quickbooks.intuit.com/learn-support/en-uk/help-article/bank-transactions/format-csv-files-excel-get-bank-transactions/L4BjLWckq_GB_en_GB). Choose the single Amount column and `dd/MM/yyyy` when uploading. |
+| Sage Accounting | Header `Date,Description,Amount` (3-column template) | [Sage bank statement import](https://gb-kb.sage.com/portal/app/portlets/results/viewsolution.jsp?solutionid=222001000100087). Not Sage 50 desktop, which needs nominal codes. |
+| Xero | Header `Date,Amount,Payee,Description,Reference` | Payee is `SumUp`; Reference is the SumUp transaction or payout ID. [Xero CSV import](https://central.xero.com/s/article/Import-a-bank-statement-in-CSV-format) |
 
 ### Money SumUp holds back
 
@@ -44,7 +53,7 @@ percentage setting (15% by default):
 It's one HTML file with no build step and no dependencies. Download
 `index.html` and open it in any browser.
 
-There is also a command-line version for the detailed export:
+There is also a command-line version for the detailed export (FreeAgent format only):
 
 ```sh
 python3 sumup_to_freeagent.py transactions-report.csv
