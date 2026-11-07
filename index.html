@@ -51,7 +51,7 @@
   :root:not([data-theme="dark"]) {
     color-scheme: light;
     --paper: #e5e9f0; --surface: #f2f4f8; --sunk: #e9edf3; --ink: #2e3440; --muted: #4c566a; --line: #cbd2dd;
-    --accent: #81a1c1; --accent-ink: #2e3440; --accent-text: #476588; --accent-soft: rgba(94, 129, 172, 0.12);
+    --accent: #476588; --accent-ink: #ffffff; --accent-text: #476588; --accent-soft: rgba(94, 129, 172, 0.12);
     --cyan: #476588; --in: #3f6b32; --out: #a3404a; --hold: #476588; --hold-soft: rgba(94, 129, 172, 0.16); --warn-soft: rgba(191, 97, 106, 0.16);
     --toast-bg: rgb(242 244 248 / 0.85); --knob: #ffffff; --glow: rgba(94, 129, 172, 0.18);
   }
@@ -59,7 +59,7 @@
 :root[data-theme="light"] {
   color-scheme: light;
   --paper: #e5e9f0; --surface: #f2f4f8; --sunk: #e9edf3; --ink: #2e3440; --muted: #4c566a; --line: #cbd2dd;
-  --accent: #81a1c1; --accent-ink: #2e3440; --accent-text: #476588; --accent-soft: rgba(94, 129, 172, 0.12);
+  --accent: #476588; --accent-ink: #ffffff; --accent-text: #476588; --accent-soft: rgba(94, 129, 172, 0.12);
   --cyan: #476588; --in: #3f6b32; --out: #a3404a; --hold: #476588; --hold-soft: rgba(94, 129, 172, 0.16); --warn-soft: rgba(191, 97, 106, 0.16);
   --toast-bg: rgb(242 244 248 / 0.85); --knob: #ffffff; --glow: rgba(94, 129, 172, 0.18);
 }
@@ -825,7 +825,7 @@ void main() {
   canvas.addEventListener("webglcontextrestored", () => { pipeline = gl ? build(gl) : null; showCanvas(); render(); });
   new ResizeObserver(() => { measure(); if (!drops.length) settle(target < 0 ? opts.initial : target); else render(); }).observe(stage);
   measure(); settle(opts.initial);
-  return { go, setHover(rgba) { S.hoverRgb = rgba; render(); } };
+  return { go, setHover(rgba) { S.hoverRgb = rgba; render(); }, setPill(rgb) { S.pillRgb = rgb; render(); } };
 }
 
 /* ---------- UI ---------- */
@@ -922,6 +922,8 @@ function showMode() {
   $("theme").setAttribute("aria-label", m === "light" ? "Switch to dark mode" : "Switch to light mode");
   themeMeta.setAttribute("content", m === "light" ? "#e5e9f0" : "#20242d");
   goo.setHover(m === "light" ? [0.18, 0.2, 0.25, 0.07] : [1, 1, 1, 0.08]);
+  // the WebGL pill can't read CSS, so pass it the accent for this mode
+  goo.setPill(m === "light" ? [0.278, 0.396, 0.533] : [0.506, 0.631, 0.757]);
 }
 $("theme").addEventListener("click", function () {
   const next = mode() === "light" ? "dark" : "light", still = matchMedia("(prefers-reduced-motion: reduce)").matches;
