@@ -3,7 +3,7 @@
 Turn a [SumUp](https://www.sumup.com/) transactions export into a bank
 statement CSV for FreeAgent, QuickBooks Online, Sage Accounting or Xero.
 
-**Live tool: [sumup.nightfalltools.co.uk](https://sumup.nightfalltools.co.uk/)**
+**Live tool: [sumupconvert.nightfalltools.co.uk](https://sumupconvert.nightfalltools.co.uk/)**
 
 Everything runs in your browser. The file you choose is read into memory in
 that tab and never uploaded; the page blocks all network requests with a
